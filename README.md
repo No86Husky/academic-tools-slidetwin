@@ -10,8 +10,8 @@ It is designed for the workflow where a visually strong slide already exists as 
 
 Version `0.2.0` is a tested public preview. The golden-sample workflow has verified:
 
-- Windows 11 x64 and PowerPoint 2024 x64 automation.
-- Chinese text without encoding corruption under Windows PowerShell 5.1.
+- 64-bit Windows and desktop PowerPoint COM automation.
+- Chinese text without encoding corruption through the PowerShell bridge.
 - Recursive inspection of grouped PowerPoint objects.
 - Non-destructive JSON correction plans.
 - Protected-picture geometry verification.
@@ -34,8 +34,8 @@ Desktop PowerPoint is the rendering authority. LibreOffice or third-party previe
 
 ## Supported environment
 
-- Windows 11 x64
-- PowerPoint 2024 desktop x64; Microsoft 365 desktop PowerPoint should also work but is not yet part of the golden-sample matrix
+- Windows 10 or Windows 11, 64-bit
+- A 64-bit desktop PowerPoint installation with COM automation enabled
 - Windows PowerShell 5.1 or PowerShell 7+
 - Python 3.10+ for OOXML inspection and image comparison
 - Python packages: `numpy` and `Pillow`

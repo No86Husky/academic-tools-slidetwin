@@ -1,0 +1,4 @@
+interface:
+  display_name: "PPT Visual Reconstructor"
+  short_description: "Rebuild reference slides as editable PowerPoint"
+  default_prompt: "Use $ppt-visual-reconstructor to reconstruct this reference as an editable PowerPoint slide and verify its native render."

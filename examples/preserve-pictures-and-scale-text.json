@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "description": "Example first-pass plan: preserve two picture objects and scale all editable text on slide 1.",
+  "protected_addresses": [
+    "1/11",
+    "1/12"
+  ],
+  "operations": [
+    {
+      "op": "scale_all_text",
+      "slide_number": 1,
+      "factor": 0.8,
+      "exclude_addresses": []
+    }
+  ]
+}

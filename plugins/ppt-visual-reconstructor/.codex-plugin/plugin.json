@@ -1,0 +1,38 @@
+{
+  "name": "ppt-visual-reconstructor",
+  "version": "0.2.0",
+  "description": "Reconstruct and refine editable PowerPoint slides against reference images.",
+  "author": {
+    "name": "No86Husky and contributors",
+    "url": "https://github.com/No86Husky"
+  },
+  "homepage": "https://github.com/No86Husky/academic-tools#readme",
+  "repository": "https://github.com/No86Husky/academic-tools",
+  "license": "MIT",
+  "keywords": [
+    "powerpoint",
+    "pptx",
+    "editable-slides",
+    "visual-reconstruction",
+    "svg"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "PPT Visual Reconstructor",
+    "shortDescription": "Rebuild reference images as editable PowerPoint slides.",
+    "longDescription": "Reconstructs or repairs editable PowerPoint slides, renders them with desktop PowerPoint, compares the result with a reference image, and iteratively corrects layout, typography, imagery, and layering.",
+    "developerName": "PPT Visual Reconstructor Contributors",
+    "category": "Productivity",
+    "websiteURL": "https://github.com/No86Husky/academic-tools",
+    "capabilities": [
+      "Editable slide reconstruction",
+      "SVG-to-shape repair",
+      "Reference-image comparison"
+    ],
+    "defaultPrompt": [
+      "Reconstruct this reference image as an editable PowerPoint slide.",
+      "Repair this SVG-to-PowerPoint conversion and preserve selected images.",
+      "Compare this PPTX render with the reference and produce a correction plan."
+    ]
+  }
+}
