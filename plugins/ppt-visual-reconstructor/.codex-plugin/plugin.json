@@ -1,7 +1,7 @@
 {
   "name": "ppt-visual-reconstructor",
-  "version": "0.2.0",
-  "description": "Reconstruct and refine editable PowerPoint slides against reference images.",
+  "version": "0.3.0",
+  "description": "Create a high-fidelity editable PowerPoint slide from only a reference image.",
   "author": {
     "name": "No86Husky and contributors",
     "url": "https://github.com/No86Husky"
@@ -19,18 +19,20 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "PPT Visual Reconstructor",
-    "shortDescription": "Rebuild reference images as editable PowerPoint slides.",
-    "longDescription": "Reconstructs or repairs editable PowerPoint slides, renders them with desktop PowerPoint, compares the result with a reference image, and iteratively corrects layout, typography, imagery, and layering.",
+    "shortDescription": "Turn one slide image into a high-fidelity editable PPTX.",
+    "longDescription": "Accepts a single reference PNG or JPEG, decomposes it into native PowerPoint text and shapes plus protected image regions, creates a semantic SVG intermediate, renders with desktop PowerPoint, and iteratively corrects the slide toward at least 90% pixel similarity.",
     "developerName": "PPT Visual Reconstructor Contributors",
     "category": "Productivity",
     "websiteURL": "https://github.com/No86Husky/academic-tools",
     "capabilities": [
       "Editable slide reconstruction",
+      "Image-only PPTX generation",
+      "Semantic SVG generation",
       "SVG-to-shape repair",
       "Reference-image comparison"
     ],
     "defaultPrompt": [
-      "Reconstruct this reference image as an editable PowerPoint slide.",
+      "Use only this reference image to create an editable PowerPoint slide with at least 90% pixel similarity.",
       "Repair this SVG-to-PowerPoint conversion and preserve selected images.",
       "Compare this PPTX render with the reference and produce a correction plan."
     ]

@@ -28,7 +28,18 @@ def load_json(path: Path) -> object:
 
 
 def main() -> int:
-    required = [MANIFEST, SKILL, MARKETPLACE, ROOT / "LICENSE", ROOT / "README.md"]
+    required = [
+        MANIFEST,
+        SKILL,
+        MARKETPLACE,
+        ROOT / "LICENSE",
+        ROOT / "README.md",
+        PLUGIN / "scripts" / "prepare_image_scene.py",
+        PLUGIN / "scripts" / "build_powerpoint_from_scene_v1.ps1",
+        PLUGIN / "skills" / "ppt-visual-reconstructor" / "references" / "scene-format.md",
+        ROOT / "examples" / "image-only-scene-plan.json",
+        ROOT / "tests" / "test_prepare_image_scene.py",
+    ]
     for path in required:
         if not path.is_file():
             fail(f"Missing required file: {path.relative_to(ROOT)}")

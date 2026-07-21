@@ -10,20 +10,38 @@ Use these scripts only on Windows with desktop PowerPoint installed. All scripts
 powershell -ExecutionPolicy Bypass -File .\scripts\probe_powerpoint_v4.ps1
 ```
 
-2. Inspect native objects and produce a PowerPoint render:
+2. For a single-image input, let Codex write `scene-plan.json`, then create the semantic SVG, protected image assets, editable PPTX, and first render:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\build_powerpoint_from_scene_v1.ps1 `
+  -ReferenceImagePath .\reference.png `
+  -ScenePlanPath .\scene-plan.json `
+  -OutputDirectory .\image-only-output
+```
+
+3. Inspect native objects and produce a PowerPoint render:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\inspect_powerpoint_v1.ps1 `
   -PresentationPath .\source.pptx
 ```
 
-3. Probe installed fonts only when font substitution is plausible:
+4. Compare the first native render with the reference:
+
+```powershell
+python .\scripts\compare_slide_images.py `
+  --reference .\reference.png `
+  --candidate .\image-only-output\reconstructed-from-image.png `
+  --output-dir .\image-only-output\comparison
+```
+
+5. Probe installed fonts only when font substitution is plausible:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\probe_fonts_v1.ps1
 ```
 
-4. Apply a reviewed correction plan:
+6. Apply a reviewed correction plan:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\apply_powerpoint_plan_v4.ps1 `
@@ -32,7 +50,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\apply_powerpoint_plan_v4.ps1 
   -OutputDirectory .\output
 ```
 
-5. If glyph shape remains the largest difference after geometry is aligned, run a font sweep on the latest reconstruction:
+7. If glyph shape remains the largest difference after geometry is aligned, run a font sweep on the latest reconstruction:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\sweep_powerpoint_fonts_v1.ps1 `
@@ -60,7 +78,21 @@ not:
 
 ## Output contract
 
-The plan runner writes:
+The image-only builder writes:
+
+```text
+image-only-output/
+├── reconstructed-from-image.pptx
+├── reconstructed-from-image.png
+├── semantic-preview.svg
+├── scene-plan.resolved.json
+├── scene-preparation-result.json
+├── image-only-build-result.json
+└── assets/
+    └── protected-region.png
+```
+
+The correction-plan runner writes:
 
 ```text
 output/

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0
+
+- Made a single reference PNG or JPEG the only required input.
+- Added a semantic scene-plan format for native text, shapes, lines, SVG objects, and protected raster regions.
+- Added protected-region extraction and semantic SVG preview generation.
+- Added blank-presentation reconstruction through desktop PowerPoint COM.
+- Added an explicit image-only output contract and editable-coverage acceptance gate.
+- Kept the v0.2 native render, comparison, protected-object, typography, and iterative correction workflow.
+
 ## 0.2.0
 
 - Verified Windows 11 x64 and PowerPoint 2024 x64 automation.

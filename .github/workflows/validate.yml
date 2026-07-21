@@ -19,3 +19,5 @@ jobs:
       - run: python tools/validate_repository.py
       - run: python plugins/ppt-visual-reconstructor/scripts/inspect_pptx.py --help
       - run: python plugins/ppt-visual-reconstructor/scripts/compare_slide_images.py --help
+      - run: python plugins/ppt-visual-reconstructor/scripts/prepare_image_scene.py --help
+      - run: python -m unittest discover -s tests -v

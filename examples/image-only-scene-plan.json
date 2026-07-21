@@ -1,0 +1,75 @@
+{
+  "schema_version": "1.0",
+  "reference_image": "reference.png",
+  "slide": {
+    "width_px": 1600,
+    "height_px": 900,
+    "width_pt": 960,
+    "height_pt": 540,
+    "background": "#FFFFFF"
+  },
+  "quality_gate": {
+    "pixel_similarity": 0.9,
+    "text_accuracy": 1.0,
+    "protected_picture_integrity": 1.0
+  },
+  "elements": [
+    {
+      "id": "title",
+      "kind": "text",
+      "classification": "native_text",
+      "editable": true,
+      "bounds_px": [96, 42, 900, 74],
+      "z": 20,
+      "text": "示例标题",
+      "font": {
+        "family": "Microsoft YaHei",
+        "size_pt": 30,
+        "bold": true,
+        "italic": false,
+        "color": "#111111",
+        "spacing_pt": 0
+      },
+      "paragraph": {
+        "align": "left",
+        "vertical_align": "middle",
+        "margin_left_pt": 0,
+        "margin_right_pt": 0,
+        "margin_top_pt": 0,
+        "margin_bottom_pt": 0,
+        "word_wrap": false
+      }
+    },
+    {
+      "id": "card",
+      "kind": "shape",
+      "classification": "native_shape",
+      "editable": true,
+      "shape_type": "rounded_rectangle",
+      "bounds_px": [96, 210, 420, 420],
+      "z": 5,
+      "fill": {"color": "#FFFFFF", "opacity": 1},
+      "stroke": {"color": "#E7E7E7", "opacity": 1, "width_pt": 0.6},
+      "shadow": {
+        "color": "#000000",
+        "opacity": 0.08,
+        "blur_pt": 6,
+        "offset_x_pt": 0,
+        "offset_y_pt": 3
+      }
+    },
+    {
+      "id": "artwork",
+      "kind": "image",
+      "classification": "raster_picture",
+      "editable": false,
+      "preserve_as_image": true,
+      "bounds_px": [920, 190, 500, 400],
+      "z": 10,
+      "source": {
+        "type": "reference_crop",
+        "box_px": [920, 190, 500, 400]
+      }
+    }
+  ]
+}

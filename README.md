@@ -1,14 +1,23 @@
 # PPT Visual Reconstructor
 
-PPT Visual Reconstructor is a Codex plugin and Windows companion toolkit for repairing editable PowerPoint slides against reference images.
+PPT Visual Reconstructor is a Codex plugin and Windows companion toolkit for creating a high-fidelity editable PowerPoint slide from only a reference image.
 
-It is designed for the workflow where a visually strong slide already exists as a PNG/JPEG or SVG, but the editable PowerPoint conversion has incorrect fonts, spacing, wrapping, shapes, shadows, or layering. Selected artwork and photographs can remain raster images while text and simple graphics stay native and editable.
+Upload one PNG or JPEG. The plugin decomposes it into semantic text, simple shapes, lines, icons, and complex image regions; creates an SVG intermediate; builds a new editable PPTX with desktop PowerPoint; and iteratively compares the native render with the reference. Selected artwork and photographs remain separate raster images while text and simple graphics become native editable objects. Existing SVG and PPTX files are optional accelerators, not required inputs.
 
-> 中文概述：把参考图片或 SVG 转换结果修复成高还原度、可编辑的 PowerPoint，并使用桌面版 PowerPoint 的真实渲染结果进行迭代校正。
+> 中文概述：使用者只需上传一张PPT参考图片，插件自动生成语义SVG中间稿和可编辑PPT，再使用桌面版PowerPoint的真实渲染结果进行迭代校正，目标像素还原度不低于90%。
 
 ## Status
 
-Version `0.2.0` is a tested public preview. The golden-sample workflow has verified:
+Version `0.3.0` is an image-only public preview. It adds:
+
+- Single-image input without requiring a source SVG or draft PPTX.
+- Semantic scene decomposition into native text, native shapes, SVG objects, and protected raster pictures.
+- Reference-region extraction for photographs, artistic lettering, and complex illustrations.
+- Semantic SVG generation without pretending that one embedded full-slide bitmap is editable.
+- Blank-presentation construction through native PowerPoint objects.
+- Editable-coverage reporting alongside visual similarity.
+
+The v0.2 correction and validation layer has already verified:
 
 - 64-bit Windows and desktop PowerPoint COM automation.
 - Chinese text without encoding corruption through the PowerShell bridge.
@@ -23,12 +32,16 @@ On the first golden sample, the workflow improved the strict composite score fro
 
 ## How it works
 
-1. Inspect the reference image, source SVG, and draft PPTX.
-2. Mark photographs or artwork that must remain picture objects.
-3. Inventory native PowerPoint objects and render the deck through desktop PowerPoint.
-4. Align the render with the reference and measure visual differences.
-5. Apply an explicit correction plan to a copy of the deck.
-6. Verify protected objects, render again, and repeat until the quality gate is met or the remaining mismatch is documented.
+1. Inspect the uploaded reference image at full resolution and transcribe its text.
+2. Classify each visible element as native text, native shape, SVG object, or protected raster picture.
+3. Write a semantic scene plan and generate a semantic SVG preview plus cropped protected-image assets.
+4. Create a new blank PowerPoint slide and rebuild the scene with native objects.
+5. Export the slide through desktop PowerPoint and align it with the reference.
+6. Measure visual differences and create an explicit correction plan.
+7. Correct typography, geometry, colors, crop, shadows, and layering.
+8. Verify protected objects, render again, and repeat until the quality gate is met or the remaining mismatch is documented.
+
+The SVG is an intermediate inspection artifact. Text is rebuilt as native PowerPoint text rather than converted into glyph outlines, because outline conversion looks editable but prevents normal text editing.
 
 Desktop PowerPoint is the rendering authority. LibreOffice or third-party previews are not used to approve final fidelity.
 
@@ -49,6 +62,17 @@ Clone or download this repository, then validate the PowerPoint bridge:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\plugins\ppt-visual-reconstructor\scripts\probe_powerpoint_v4.ps1
 ```
+
+For the image-only path, let Codex create a scene plan using the uploaded reference and then run:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\plugins\ppt-visual-reconstructor\scripts\build_powerpoint_from_scene_v1.ps1 `
+  -ReferenceImagePath .\reference.png `
+  -ScenePlanPath .\scene-plan.json `
+  -OutputDirectory .\image-only-output
+```
+
+The command creates the protected image assets, semantic SVG, editable PPTX, native PowerPoint render, and build report.
 
 Inspect a presentation and export native slide renders:
 
@@ -75,7 +99,7 @@ powershell -ExecutionPolicy Bypass -File .\plugins\ppt-visual-reconstructor\scri
   -OutputDirectory .\reconstructed-output
 ```
 
-See [the Windows bridge reference](plugins/ppt-visual-reconstructor/skills/ppt-visual-reconstructor/references/windows-bridge.md) and [the correction-plan format](plugins/ppt-visual-reconstructor/skills/ppt-visual-reconstructor/references/plan-format.md) for details.
+See [the image-only scene format](plugins/ppt-visual-reconstructor/skills/ppt-visual-reconstructor/references/scene-format.md), [the Windows bridge reference](plugins/ppt-visual-reconstructor/skills/ppt-visual-reconstructor/references/windows-bridge.md), and [the correction-plan format](plugins/ppt-visual-reconstructor/skills/ppt-visual-reconstructor/references/plan-format.md) for details.
 
 ## Codex plugin layout
 
@@ -92,21 +116,26 @@ plugins/ppt-visual-reconstructor/
 
 ## Install from GitHub
 
-Clone the public repository:
+Install Git, Node.js, and Codex CLI on Windows if they are not already available:
 
-```bash
-git clone https://github.com/No86Husky/academic-tools.git
-cd academic-tools
+```powershell
+winget install --id Git.Git
+winget install --id OpenJS.NodeJS.LTS
+npm.cmd install --global @openai/codex
 ```
 
-Add the cloned repository root as a local Codex marketplace, then install the plugin:
+Add the public GitHub marketplace and install the plugin:
 
-```bash
-codex plugin marketplace add <absolute-path-to-academic-tools>
+```powershell
+codex plugin marketplace add No86Husky/academic-tools
 codex plugin add ppt-visual-reconstructor@personal
 ```
 
-Start a new Codex thread after installation so the skill metadata is reloaded. Invoke it explicitly with `$ppt-visual-reconstructor`, or ask Codex to reconstruct or repair an editable PowerPoint slide from a reference image.
+Start a new Codex thread after installation so the skill metadata is reloaded. Upload one slide image and use:
+
+```text
+Use $ppt-visual-reconstructor to create an editable PowerPoint slide from only this image. Automatically keep photographs, artistic lettering, and complex illustrations as separate pictures; rebuild all text and simple geometry as native PowerPoint objects; and iterate toward at least 90% pixel similarity.
+```
 
 ## Safety and editability
 
@@ -119,9 +148,12 @@ Start a new Codex thread after installation so the skill metadata is reloaded. I
 
 ## Current limitations
 
-- Visual correction plans are generated iteratively; a single fully automatic reconstruction command is planned for a later release.
+- Image-only scene plans are generated by Codex's visual reasoning; the local scripts do not yet bundle a separate deterministic OCR and segmentation engine.
+- The first image-only builder handles one slide per case. Batch orchestration is planned after the single-slide quality gate is stable.
+- Complex freeform vector paths may remain one SVG object or raster picture instead of becoming hundreds of fragile PowerPoint primitives.
 - PowerPoint shape addresses are index-based and can change after users manually add, remove, or regroup objects.
 - Exact font rasterization can differ even when font family, size, bounds, and spacing match.
+- A low-resolution reference, unreadable text, or unavailable font can prevent the 90% target; the plugin must report the plateau instead of flattening the slide.
 - Protected-picture verification does not yet hash the embedded media bytes.
 - PowerPoint for macOS and web PowerPoint are not supported by the COM bridge.
 
