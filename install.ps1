@@ -70,7 +70,7 @@ function Require-Or-Install {
     return $path
 }
 
-Write-Host "PPT Visual Reconstructor installer"
+Write-Host "SlideTwin installer"
 Write-Host "Install directory: $InstallDir"
 
 $git = Require-Or-Install -Names @("git.exe", "git") -WingetId "Git.Git" -Label "Git"
@@ -157,4 +157,5 @@ if ($RunPowerPointProbe) {
 Write-Host ""
 Write-Host "Installation complete."
 Write-Host "Close and reopen Codex, start a new thread, upload one slide image, and ask:"
-Write-Host 'Use $ppt-visual-reconstructor to recreate this image as an editable PowerPoint slide.'
+Write-Host 'Use $slidetwin to recreate this image as an editable PowerPoint slide.'
+Write-Host 'Compatibility: $ppt-visual-reconstructor remains supported for existing prompts and videos.'

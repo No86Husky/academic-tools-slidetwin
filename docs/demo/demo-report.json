@@ -1,0 +1,35 @@
+{
+  "case": "second-public-image-only-test",
+  "input": "reference.png",
+  "candidate": "reconstructed.png",
+  "fit_mode": "contain",
+  "canvas": {
+    "width": 1672,
+    "height": 940
+  },
+  "visual_metrics": {
+    "mean_absolute_error": 0.096733,
+    "root_mean_square_error": 0.226476,
+    "pixel_similarity": 0.903267,
+    "global_ssim": 0.804273,
+    "edge_similarity": 0.953807,
+    "composite_visual_score": 0.868828,
+    "different_pixel_ratio_at_30": 0.212607
+  },
+  "powerpoint_structure": {
+    "slide_count": 1,
+    "slide_width_inches": 13.3333,
+    "slide_height_inches": 7.5,
+    "objects": 358,
+    "shapes": 223,
+    "connectors": 130,
+    "pictures": 5,
+    "text_objects": 101,
+    "text_characters": 693,
+    "potential_overflow_objects": 0,
+    "fonts": [
+      "Microsoft YaHei",
+      "Segoe UI Symbol"
+    ]
+  }
+}

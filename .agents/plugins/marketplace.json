@@ -1,7 +1,7 @@
 {
   "name": "ppt-visual-tools",
   "interface": {
-    "displayName": "PPT Visual Tools"
+    "displayName": "SlideTwin Tools"
   },
   "plugins": [
     {

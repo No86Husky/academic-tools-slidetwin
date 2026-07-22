@@ -1,0 +1,4 @@
+interface:
+  display_name: "SlideTwin"
+  short_description: "Turn one slide image into an editable visual twin"
+  default_prompt: "Use $slidetwin and its installed tools to create an editable PowerPoint slide from only this reference image, preserve complex imagery as separate pictures, and iterate toward at least 90% pixel similarity."
