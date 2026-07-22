@@ -13,7 +13,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins" / "ppt-visual-reconstructor"
 MANIFEST = PLUGIN / ".codex-plugin" / "plugin.json"
-SKILL = PLUGIN / "skills" / "ppt-visual-reconstructor" / "SKILL.md"
+SKILL = PLUGIN / "skills" / "slidetwin" / "SKILL.md"
+LEGACY_SKILL = PLUGIN / "skills" / "ppt-visual-reconstructor" / "SKILL.md"
 MARKETPLACE = ROOT / ".agents" / "plugins" / "marketplace.json"
 SEMVER = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$")
 
@@ -31,6 +32,7 @@ def main() -> int:
     required = [
         MANIFEST,
         SKILL,
+        LEGACY_SKILL,
         MARKETPLACE,
         ROOT / "LICENSE",
         ROOT / "README.md",
@@ -61,23 +63,23 @@ def main() -> int:
     for key in ("description", "author", "skills", "interface"):
         if key not in manifest:
             fail(f"plugin.json is missing {key}")
-    if manifest.get("version") != "0.4.0":
-        fail("Repository release and plugin manifest must be version 0.4.0")
+    if manifest.get("version") != "0.5.0":
+        fail("Repository release and plugin manifest must be version 0.5.0")
     if manifest.get("mcpServers") != "./.mcp.json":
         fail("plugin.json must declare the bundled MCP server")
 
     mcp = load_json(PLUGIN / ".mcp.json")
-    server = mcp.get("mcpServers", {}).get("ppt-visual-tools", {}) if isinstance(mcp, dict) else {}
+    server = mcp.get("mcpServers", {}).get("slidetwin-tools", {}) if isinstance(mcp, dict) else {}
     if server.get("command") != "node":
-        fail("The ppt-visual-tools MCP server must use Node.js")
+        fail("The slidetwin-tools MCP server must use Node.js")
     if server.get("args") != ["./scripts/mcp-server.mjs"]:
-        fail("The ppt-visual-tools MCP server entry point is incorrect")
+        fail("The slidetwin-tools MCP server entry point is incorrect")
 
     marketplace = load_json(MARKETPLACE)
     if marketplace.get("name") != "ppt-visual-tools":
         fail("Marketplace name must be ppt-visual-tools")
-    if marketplace.get("interface", {}).get("displayName") != "PPT Visual Tools":
-        fail("Marketplace display name must be PPT Visual Tools")
+    if marketplace.get("interface", {}).get("displayName") != "SlideTwin Tools":
+        fail("Marketplace display name must be SlideTwin Tools")
     entries = marketplace.get("plugins", []) if isinstance(marketplace, dict) else []
     matching = [entry for entry in entries if entry.get("name") == PLUGIN.name]
     if len(matching) != 1:
@@ -89,10 +91,15 @@ def main() -> int:
     if not skill_text.startswith("---\n"):
         fail("SKILL.md must start with YAML frontmatter")
     frontmatter = skill_text.split("---", 2)[1]
-    if "name: ppt-visual-reconstructor" not in frontmatter:
-        fail("SKILL.md name does not match the plugin skill")
+    if "name: slidetwin" not in frontmatter:
+        fail("Primary SKILL.md name must be slidetwin")
     if "description:" not in frontmatter:
         fail("SKILL.md must include a description")
+
+    legacy_text = LEGACY_SKILL.read_text(encoding="utf-8")
+    legacy_frontmatter = legacy_text.split("---", 2)[1]
+    if "name: ppt-visual-reconstructor" not in legacy_frontmatter:
+        fail("Legacy Skill alias must remain ppt-visual-reconstructor")
 
     for path in PLUGIN.rglob("*.py"):
         ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
