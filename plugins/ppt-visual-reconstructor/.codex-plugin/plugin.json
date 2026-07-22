@@ -1,7 +1,7 @@
 {
   "name": "ppt-visual-reconstructor",
-  "version": "0.4.0",
-  "description": "Create a high-fidelity editable PowerPoint slide from one reference image with callable local reconstruction tools.",
+  "version": "0.5.0",
+  "description": "SlideTwin recreates a high-fidelity editable PowerPoint slide from one reference image with callable local reconstruction tools.",
   "author": {
     "name": "No86Husky and contributors",
     "url": "https://github.com/No86Husky"
@@ -10,6 +10,7 @@
   "repository": "https://github.com/No86Husky/academic-tools",
   "license": "MIT",
   "keywords": [
+    "slidetwin",
     "powerpoint",
     "pptx",
     "editable-slides",
@@ -20,10 +21,10 @@
   "skills": "./skills/",
   "mcpServers": "./.mcp.json",
   "interface": {
-    "displayName": "PPT Visual Reconstructor",
+    "displayName": "SlideTwin",
     "shortDescription": "Turn one slide image into a high-fidelity editable PPTX.",
-    "longDescription": "Accepts a single reference PNG or JPEG, decomposes it into native PowerPoint text and shapes plus protected image regions, creates a semantic SVG intermediate, calls a local Windows PowerPoint toolchain, and iteratively corrects the slide toward at least 90% pixel similarity.",
-    "developerName": "PPT Visual Reconstructor Contributors",
+    "longDescription": "SlideTwin accepts a single reference PNG or JPEG, decomposes it into native PowerPoint text and shapes plus protected image regions, creates a semantic SVG intermediate, calls a local Windows PowerPoint toolchain, and iteratively corrects the slide toward at least 90% pixel similarity.",
+    "developerName": "SlideTwin Contributors",
     "category": "Productivity",
     "websiteURL": "https://github.com/No86Husky/academic-tools",
     "capabilities": [
@@ -35,8 +36,8 @@
       "Direct Codex MCP tools"
     ],
     "defaultPrompt": [
-      "Use only this reference image to create an editable PowerPoint slide with at least 90% pixel similarity.",
-      "Repair this SVG-to-PowerPoint conversion and preserve selected images.",
+      "Use SlideTwin to recreate this slide image as an editable PowerPoint with at least 90% pixel similarity.",
+      "Repair this SVG-to-PowerPoint conversion while preserving selected images.",
       "Compare this PPTX render with the reference and produce a correction plan."
     ]
   }
