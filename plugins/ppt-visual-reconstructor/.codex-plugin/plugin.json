@@ -6,8 +6,8 @@
     "name": "No86Husky and contributors",
     "url": "https://github.com/No86Husky"
   },
-  "homepage": "https://github.com/No86Husky/academic-tools#readme",
-  "repository": "https://github.com/No86Husky/academic-tools",
+  "homepage": "https://github.com/No86Husky/academic-tools-slidetwin#readme",
+  "repository": "https://github.com/No86Husky/academic-tools-slidetwin",
   "license": "MIT",
   "keywords": [
     "slidetwin",
@@ -26,7 +26,7 @@
     "longDescription": "SlideTwin accepts a single reference PNG or JPEG, decomposes it into native PowerPoint text and shapes plus protected image regions, creates a semantic SVG intermediate, calls a local Windows PowerPoint toolchain, and iteratively corrects the slide toward at least 90% pixel similarity.",
     "developerName": "SlideTwin Contributors",
     "category": "Productivity",
-    "websiteURL": "https://github.com/No86Husky/academic-tools",
+    "websiteURL": "https://github.com/No86Husky/academic-tools-slidetwin",
     "capabilities": [
       "Editable slide reconstruction",
       "Image-only PPTX generation",
