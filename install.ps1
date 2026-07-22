@@ -6,7 +6,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$Repository = "https://github.com/No86Husky/academic-tools.git"
+$Repository = "https://github.com/No86Husky/academic-tools-slidetwin.git"
 $Marketplace = "ppt-visual-tools"
 $Plugin = "ppt-visual-reconstructor@$Marketplace"
 
