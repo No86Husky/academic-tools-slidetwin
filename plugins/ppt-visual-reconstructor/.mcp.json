@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "ppt-visual-tools": {
+    "slidetwin-tools": {
       "command": "node",
       "args": [
         "./scripts/mcp-server.mjs"
