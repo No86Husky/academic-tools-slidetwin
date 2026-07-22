@@ -34,16 +34,28 @@ If original assets are unavailable, identify regions that cannot be recovered cl
 - Preserve charts as native charts only when source data is available; otherwise preserve them as images and report the limitation.
 - Assign stable, semantic object names before iterative correction.
 
+## Use the installed tools first
+
+When the plugin-provided MCP tools are callable, use them instead of asking the user to copy PowerShell commands:
+
+1. Call `ppt_environment_status` once in a new environment.
+2. On Windows, call `ppt_probe_powerpoint` before the first native build unless a successful probe from the same installation is already available.
+3. Create all working files in one absolute output directory.
+4. Call `ppt_prepare_image_scene`, inspect its semantic SVG and report, then call `ppt_build_editable_slide`.
+5. Call `ppt_compare_slide` after every native render. Call `ppt_inspect_powerpoint` before writing a correction plan and `ppt_apply_correction_plan` after the plan is reviewed.
+
+Use the bundled scripts directly only when the corresponding MCP tool is unavailable. Native PPTX creation and repair require Windows desktop PowerPoint; do not simulate approval with a third-party renderer on another operating system.
+
 ## Image-only workflow
 
 1. Inspect the reference at full resolution. Transcribe all visible text and detect the slide canvas, layout regions, object boundaries, colors, typography, photographs, artwork, icons, and decoration.
 2. Classify every visible element as `native_text`, `native_shape`, `svg_object`, or `raster_picture` according to the object policy.
 3. Read [references/scene-format.md](references/scene-format.md) and write an image-only scene plan in the reference-image pixel coordinate system. One semantic paragraph or label must remain one text box.
-4. Run `scripts/prepare_image_scene.py` to validate the plan, crop protected picture regions from the reference, and create `semantic-preview.svg`. Never use a visible full-slide raster element to pass the metric.
+4. Call `ppt_prepare_image_scene` to validate the plan, crop protected picture regions from the reference, and create `semantic-preview.svg`. Never use a visible full-slide raster element to pass the metric.
 5. Inspect the semantic SVG against the reference. Correct missing elements, wrong colors, incorrect bounds, or text transcription before creating the PPTX.
-6. On Windows, run `scripts/build_powerpoint_from_scene_v1.ps1` to create a new presentation from a blank slide. The builder creates native PowerPoint text, shapes, and lines directly and inserts only the classified complex regions as pictures.
-7. Export the new slide with desktop PowerPoint, run `scripts/compare_slide_images.py`, and generate the first visual metrics, overlays, and difference heatmap.
-8. Inspect the created PPTX, generate a correction plan, and use `scripts/apply_powerpoint_plan_v4.ps1` for typography, color, visibility, movement, and editable shape refinement.
+6. On Windows, call `ppt_build_editable_slide` to create a new presentation from a blank slide. The builder creates native PowerPoint text, shapes, and lines directly and inserts only the classified complex regions as pictures.
+7. Call `ppt_compare_slide` on the new native render to generate the first visual metrics, overlay, and difference heatmap.
+8. Call `ppt_inspect_powerpoint`, generate a correction plan, and call `ppt_apply_correction_plan` for typography, color, visibility, movement, and editable shape refinement.
 9. Repeat native rendering, comparison, and targeted correction until the quality gate is met or two consecutive passes produce no meaningful improvement.
 10. Deliver the editable PPTX, semantic SVG, protected image assets, final render, scene plan, correction plans, and quality/editability report.
 
@@ -91,13 +103,17 @@ Require all of the following for an accepted result:
 
 ## Bundled tools
 
-- Run `scripts/prepare_image_scene.py` to validate an image-only scene plan, extract complex regions as separate PNG assets, and produce a semantic SVG preview.
-- Run `scripts/build_powerpoint_from_scene_v1.ps1` on Windows to create a new editable PPTX from the resolved scene plan and export its first native render.
-- Run `scripts/inspect_pptx.py` to create a read-only OOXML inventory without requiring PowerPoint.
-- Run `scripts/probe_powerpoint_v4.ps1` on Windows to verify that desktop PowerPoint COM automation, Chinese text, PPTX saving, and PNG export work.
-- Run `scripts/inspect_powerpoint_v1.ps1` on Windows to read native object properties and export every slide with desktop PowerPoint without modifying the source deck.
-- Run `scripts/compare_slide_images.py` to align the reference to the PowerPoint render, compute baseline visual metrics, and create overlay and difference images.
-- Run `scripts/apply_powerpoint_plan_v4.ps1` on Windows to copy a source deck, apply an explicit JSON modification plan (font scaling/replacement/spacing/color, targeted movement, visibility, and editable rounded-rectangle creation), verify protected objects, save the copy, and render the result.
+- `ppt_environment_status`: verify the MCP runtime without launching PowerPoint.
+- `ppt_probe_powerpoint`: verify desktop PowerPoint COM automation, Chinese text, PPTX saving, and PNG export.
+- `ppt_prepare_image_scene`: validate a scene plan, extract protected PNG assets, and produce the semantic SVG.
+- `ppt_build_editable_slide`: create the editable PPTX and its first native PowerPoint render.
+- `ppt_inspect_powerpoint`: inspect native objects and export slides through PowerPoint without modifying the source deck.
+- `ppt_inspect_pptx_structure`: create a cross-platform read-only OOXML inventory.
+- `ppt_compare_slide`: compute visual metrics and create the overlay and heatmap.
+- `ppt_apply_correction_plan`: copy a deck, apply an explicit JSON plan, verify protected pictures, save the copy, and render it.
+
+Every MCP tool has a same-purpose script in `scripts/` for manual fallback and development.
+
 - Run `scripts/probe_fonts_v1.ps1` on Windows when font-family substitution may explain width or glyph differences.
 - Run `scripts/sweep_powerpoint_fonts_v1.ps1` on a visually aligned reconstruction to render installed Chinese font-family variants in one batch; compare regions separately before selecting fonts for the final plan.
 

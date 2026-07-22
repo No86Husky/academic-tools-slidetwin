@@ -4,6 +4,21 @@ Use these scripts only on Windows with desktop PowerPoint installed. All scripts
 
 ## Recommended sequence
 
+When the plugin MCP tools are available, call them in this order and do not ask the user to copy commands:
+
+```text
+ppt_environment_status
+ppt_probe_powerpoint
+ppt_prepare_image_scene
+ppt_build_editable_slide
+ppt_compare_slide
+ppt_inspect_powerpoint
+ppt_apply_correction_plan
+ppt_compare_slide
+```
+
+All tool paths must be absolute. The output directory may be new; the tool creates it. The scripts below are the manual fallback when MCP tools are unavailable.
+
 1. Verify COM automation and Chinese text:
 
 ```powershell

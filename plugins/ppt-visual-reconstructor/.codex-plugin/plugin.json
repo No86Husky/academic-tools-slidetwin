@@ -1,7 +1,7 @@
 {
   "name": "ppt-visual-reconstructor",
-  "version": "0.3.0",
-  "description": "Create a high-fidelity editable PowerPoint slide from only a reference image.",
+  "version": "0.4.0",
+  "description": "Create a high-fidelity editable PowerPoint slide from one reference image with callable local reconstruction tools.",
   "author": {
     "name": "No86Husky and contributors",
     "url": "https://github.com/No86Husky"
@@ -14,13 +14,15 @@
     "pptx",
     "editable-slides",
     "visual-reconstruction",
-    "svg"
+    "svg",
+    "mcp"
   ],
   "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "PPT Visual Reconstructor",
     "shortDescription": "Turn one slide image into a high-fidelity editable PPTX.",
-    "longDescription": "Accepts a single reference PNG or JPEG, decomposes it into native PowerPoint text and shapes plus protected image regions, creates a semantic SVG intermediate, renders with desktop PowerPoint, and iteratively corrects the slide toward at least 90% pixel similarity.",
+    "longDescription": "Accepts a single reference PNG or JPEG, decomposes it into native PowerPoint text and shapes plus protected image regions, creates a semantic SVG intermediate, calls a local Windows PowerPoint toolchain, and iteratively corrects the slide toward at least 90% pixel similarity.",
     "developerName": "PPT Visual Reconstructor Contributors",
     "category": "Productivity",
     "websiteURL": "https://github.com/No86Husky/academic-tools",
@@ -29,7 +31,8 @@
       "Image-only PPTX generation",
       "Semantic SVG generation",
       "SVG-to-shape repair",
-      "Reference-image comparison"
+      "Reference-image comparison",
+      "Direct Codex MCP tools"
     ],
     "defaultPrompt": [
       "Use only this reference image to create an editable PowerPoint slide with at least 90% pixel similarity.",

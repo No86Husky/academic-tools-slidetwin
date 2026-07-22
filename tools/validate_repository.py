@@ -34,11 +34,16 @@ def main() -> int:
         MARKETPLACE,
         ROOT / "LICENSE",
         ROOT / "README.md",
+        ROOT / "install.ps1",
+        ROOT / "install.sh",
+        PLUGIN / ".mcp.json",
+        PLUGIN / "scripts" / "mcp-server.mjs",
         PLUGIN / "scripts" / "prepare_image_scene.py",
         PLUGIN / "scripts" / "build_powerpoint_from_scene_v1.ps1",
         PLUGIN / "skills" / "ppt-visual-reconstructor" / "references" / "scene-format.md",
         ROOT / "examples" / "image-only-scene-plan.json",
         ROOT / "tests" / "test_prepare_image_scene.py",
+        ROOT / "tests" / "test_mcp_server.mjs",
     ]
     for path in required:
         if not path.is_file():
@@ -56,8 +61,23 @@ def main() -> int:
     for key in ("description", "author", "skills", "interface"):
         if key not in manifest:
             fail(f"plugin.json is missing {key}")
+    if manifest.get("version") != "0.4.0":
+        fail("Repository release and plugin manifest must be version 0.4.0")
+    if manifest.get("mcpServers") != "./.mcp.json":
+        fail("plugin.json must declare the bundled MCP server")
+
+    mcp = load_json(PLUGIN / ".mcp.json")
+    server = mcp.get("mcpServers", {}).get("ppt-visual-tools", {}) if isinstance(mcp, dict) else {}
+    if server.get("command") != "node":
+        fail("The ppt-visual-tools MCP server must use Node.js")
+    if server.get("args") != ["./scripts/mcp-server.mjs"]:
+        fail("The ppt-visual-tools MCP server entry point is incorrect")
 
     marketplace = load_json(MARKETPLACE)
+    if marketplace.get("name") != "ppt-visual-tools":
+        fail("Marketplace name must be ppt-visual-tools")
+    if marketplace.get("interface", {}).get("displayName") != "PPT Visual Tools":
+        fail("Marketplace display name must be PPT Visual Tools")
     entries = marketplace.get("plugins", []) if isinstance(marketplace, dict) else []
     matching = [entry for entry in entries if entry.get("name") == PLUGIN.name]
     if len(matching) != 1:
@@ -76,7 +96,8 @@ def main() -> int:
 
     for path in PLUGIN.rglob("*.py"):
         ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-    for path in PLUGIN.rglob("*.ps1"):
+    powershell_files = [ROOT / "install.ps1", *PLUGIN.rglob("*.ps1")]
+    for path in powershell_files:
         try:
             path.read_text(encoding="ascii")
         except UnicodeDecodeError as error:

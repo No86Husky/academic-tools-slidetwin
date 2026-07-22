@@ -1,7 +1,7 @@
 {
-  "name": "personal",
+  "name": "ppt-visual-tools",
   "interface": {
-    "displayName": "Personal"
+    "displayName": "PPT Visual Tools"
   },
   "plugins": [
     {

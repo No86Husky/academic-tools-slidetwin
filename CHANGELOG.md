@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.0
+
+- Added the unique `ppt-visual-tools` Codex marketplace.
+- Added a Windows installer with explicit prerequisite installation and optional PowerPoint probing.
+- Added a zero-dependency Node.js MCP server with eight reconstruction and validation tools.
+- Made MCP tools the primary Skill workflow while preserving direct scripts as fallbacks.
+- Added MCP protocol, manifest, marketplace, and installer validation to CI.
+
 ## 0.3.0
 
 - Made a single reference PNG or JPEG the only required input.

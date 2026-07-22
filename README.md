@@ -8,7 +8,15 @@ Upload one PNG or JPEG. The plugin decomposes it into semantic text, simple shap
 
 ## Status
 
-Version `0.3.0` is an image-only public preview. It adds:
+Version `0.4.0` is an installable image-only public preview. It adds:
+
+- A unique `ppt-visual-tools` Codex marketplace, avoiding collisions with a generic `personal` marketplace.
+- A Windows one-command installer that can install Git, Node.js, Python, and Codex CLI when explicitly requested.
+- A zero-dependency local MCP server that exposes the workflow as eight callable Codex tools.
+- Direct status, PowerPoint probe, image-scene preparation, editable-slide build, native inspection, OOXML inspection, render comparison, and correction-plan tools.
+- Protocol and manifest tests in GitHub Actions.
+
+The v0.3 reconstruction layer already provides:
 
 - Single-image input without requiring a source SVG or draft PPTX.
 - Semantic scene decomposition into native text, native shapes, SVG objects, and protected raster pictures.
@@ -52,6 +60,7 @@ Desktop PowerPoint is the rendering authority. LibreOffice or third-party previe
 - Windows PowerShell 5.1 or PowerShell 7+
 - Python 3.10+ for OOXML inspection and image comparison
 - Python packages: `numpy` and `Pillow`
+- Node.js 20+ and Codex CLI for direct plugin/MCP use
 
 The PowerPoint COM scripts must run on a Windows machine with desktop PowerPoint installed. Structural PPTX inspection and image comparison are cross-platform.
 
@@ -107,6 +116,7 @@ See [the image-only scene format](plugins/ppt-visual-reconstructor/skills/ppt-vi
 .agents/plugins/marketplace.json
 plugins/ppt-visual-reconstructor/
 ├── .codex-plugin/plugin.json
+├── .mcp.json
 ├── scripts/
 └── skills/ppt-visual-reconstructor/
     ├── SKILL.md
@@ -116,19 +126,24 @@ plugins/ppt-visual-reconstructor/
 
 ## Install from GitHub
 
-Install Git, Node.js, and Codex CLI on Windows if they are not already available:
+### One command on Windows 11
+
+Open PowerShell and copy only the command below. It downloads the public installer, installs missing prerequisites with `winget`, registers the marketplace, installs the plugin, and runs the PowerPoint bridge probe:
 
 ```powershell
-winget install --id Git.Git
-winget install --id OpenJS.NodeJS.LTS
-npm.cmd install --global @openai/codex
+$p = Join-Path $env:TEMP "install-ppt-visual-reconstructor.ps1"; Invoke-WebRequest "https://raw.githubusercontent.com/No86Husky/academic-tools/main/install.ps1" -OutFile $p; powershell.exe -NoProfile -ExecutionPolicy Bypass -File $p -InstallPrerequisites -RunPowerPointProbe
 ```
 
-Add the public GitHub marketplace and install the plugin:
+The prerequisite switch authorizes installation of Git, Node.js LTS, Python 3.12, Codex CLI, `numpy`, and `Pillow`. Omit `-InstallPrerequisites` when those commands already exist. You may download and inspect `install.ps1` before running it.
+
+### Manual install
+
+If Git and Codex CLI are already available:
 
 ```powershell
-codex plugin marketplace add No86Husky/academic-tools
-codex plugin add ppt-visual-reconstructor@personal
+git clone https://github.com/No86Husky/academic-tools.git "$HOME\academic-tools"
+codex plugin marketplace add "$HOME\academic-tools"
+codex plugin add ppt-visual-reconstructor@ppt-visual-tools
 ```
 
 Start a new Codex thread after installation so the skill metadata is reloaded. Upload one slide image and use:
@@ -136,6 +151,15 @@ Start a new Codex thread after installation so the skill metadata is reloaded. U
 ```text
 Use $ppt-visual-reconstructor to create an editable PowerPoint slide from only this image. Automatically keep photographs, artistic lettering, and complex illustrations as separate pictures; rebuild all text and simple geometry as native PowerPoint objects; and iterate toward at least 90% pixel similarity.
 ```
+
+Codex should call the installed tools directly. The expected tool sequence is:
+
+```text
+ppt_environment_status -> ppt_probe_powerpoint -> ppt_prepare_image_scene
+-> ppt_build_editable_slide -> ppt_compare_slide -> correction loop
+```
+
+You should not normally need to run the underlying PowerShell scripts by hand.
 
 ## Safety and editability
 

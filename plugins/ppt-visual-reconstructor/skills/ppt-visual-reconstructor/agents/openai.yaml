@@ -1,4 +1,4 @@
 interface:
   display_name: "PPT Visual Reconstructor"
   short_description: "Turn one slide image into an editable PowerPoint"
-  default_prompt: "Use $ppt-visual-reconstructor to create an editable PowerPoint slide from only this reference image, preserve complex imagery as separate pictures, and iterate toward at least 90% pixel similarity."
+  default_prompt: "Use $ppt-visual-reconstructor and its installed tools to create an editable PowerPoint slide from only this reference image, preserve complex imagery as separate pictures, and iterate toward at least 90% pixel similarity."

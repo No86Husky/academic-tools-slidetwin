@@ -2,7 +2,7 @@
 
 This benchmark records the first end-to-end reconstruction without publishing the private reference slide, source deck, or extracted artwork.
 
-The recorded golden sample validates the native PowerPoint rendering, comparison, protected-picture, and iterative correction layers introduced before v0.3. The new v0.3 image-only bootstrap is validated structurally and must complete its Windows golden-sample run before it is described as fully automatic.
+The recorded golden sample validates the native PowerPoint rendering, comparison, protected-picture, and iterative correction layers introduced before v0.3. The v0.3+ image-only bootstrap and v0.4 MCP orchestration are validated structurally and must complete their Windows golden-sample run before the full image-only path is described as fully automatic.
 
 ## Environment
 

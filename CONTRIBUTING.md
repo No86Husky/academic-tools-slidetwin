@@ -9,10 +9,12 @@ Contributions are welcome, especially reproducible samples that expose a general
 3. Keep Windows PowerShell scripts ASCII-only unless a BOM-safe encoding strategy is added and tested under Windows PowerShell 5.1.
 4. Add deterministic stage logging and structured JSON output to new automation scripts.
 5. Preserve protected-picture behavior.
-6. Run:
+6. Keep MCP tool arguments explicit and pass child-process arguments as arrays; never interpolate user paths into a shell command.
+7. Run:
 
 ```bash
 python tools/validate_repository.py
+node tests/test_mcp_server.mjs
 ```
 
 When working in a Codex development environment, also run the plugin and skill validators documented in the root README.
