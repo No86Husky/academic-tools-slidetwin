@@ -6,8 +6,8 @@ import path from "node:path";
 import readline from "node:readline";
 import { fileURLToPath } from "node:url";
 
-const SERVER_NAME = "ppt-visual-tools";
-const SERVER_VERSION = "0.4.0";
+const SERVER_NAME = "slidetwin-tools";
+const SERVER_VERSION = "0.5.0";
 const SUPPORTED_PROTOCOLS = new Set(["2024-11-05", "2025-03-26", "2025-06-18"]);
 const DEFAULT_PROTOCOL = "2025-06-18";
 const MAX_CAPTURE_BYTES = 4 * 1024 * 1024;
@@ -19,7 +19,7 @@ const TOOLS = [
   {
     name: "ppt_environment_status",
     description:
-      "Check the installed PPT Visual Reconstructor runtime and explain which tools are available. Use this first on a new machine. It does not launch PowerPoint or modify files.",
+      "Check the installed SlideTwin runtime and explain which tools are available. Use this first on a new machine. It does not launch PowerPoint or modify files.",
     inputSchema: {
       type: "object",
       properties: {},
