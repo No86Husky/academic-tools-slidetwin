@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.0
+
+- Renamed the public product to SlideTwin to avoid confusion with similarly named projects.
+- Added `$slidetwin` as the primary Skill invocation.
+- Retained `$ppt-visual-reconstructor`, the plugin ID, and marketplace ID as compatibility identifiers for existing installations and demo videos.
+- Added the public image-only demo, editable PPTX, visual comparison, difference heatmap, workflow GIF, and reproducible metrics.
+- Updated the MCP identity, installers, validation, and documentation for the SlideTwin release.
+
 ## 0.4.0
 
 - Added the unique `ppt-visual-tools` Codex marketplace.
