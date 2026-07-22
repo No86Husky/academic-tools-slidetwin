@@ -1,9 +1,11 @@
 ---
 name: ppt-visual-reconstructor
-description: Create an editable PowerPoint slide from only a reference PNG/JPEG image, or repair an existing SVG/PPTX reconstruction. Use when Codex must decompose a flattened slide image into native text and shapes, preserve photographs or artwork as separate raster pictures, emit a semantic SVG intermediate, render with desktop PowerPoint, iteratively reach at least 90% pixel similarity, and report editability separately from visual fidelity.
+description: Compatibility alias for SlideTwin. Create an editable PowerPoint slide from only a reference PNG/JPEG image, or repair an existing SVG/PPTX reconstruction. Use when Codex must decompose a flattened slide image into native text and shapes, preserve photographs or artwork as separate raster pictures, emit a semantic SVG intermediate, render with desktop PowerPoint, iteratively reach at least 90% pixel similarity, and report editability separately from visual fidelity.
 ---
 
-# PPT Visual Reconstructor
+# SlideTwin (legacy `$ppt-visual-reconstructor` alias)
+
+This Skill preserves the original invocation used by existing installations and workflow videos. For new prompts, prefer `$slidetwin`; both names follow the same reconstruction workflow.
 
 Treat desktop PowerPoint's own export as the rendering authority. Do not declare visual fidelity from a third-party renderer alone.
 
