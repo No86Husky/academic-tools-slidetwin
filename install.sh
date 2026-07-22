@@ -27,4 +27,5 @@ codex plugin marketplace add "$INSTALL_DIR"
 codex plugin add "$PLUGIN"
 
 echo "Installation complete. Restart Codex and start a new thread."
-echo 'Upload one slide image and ask: Use $ppt-visual-reconstructor to recreate this image as an editable PowerPoint slide.'
+echo 'Upload one slide image and ask: Use $slidetwin to recreate this image as an editable PowerPoint slide.'
+echo 'Compatibility: $ppt-visual-reconstructor remains supported for existing prompts and videos.'
