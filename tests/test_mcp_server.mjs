@@ -60,8 +60,8 @@ try {
     capabilities: {},
     clientInfo: { name: "repository-test", version: "1.0.0" },
   });
-  assert.equal(initialized.result.serverInfo.name, "ppt-visual-tools");
-  assert.equal(initialized.result.serverInfo.version, "0.4.0");
+  assert.equal(initialized.result.serverInfo.name, "slidetwin-tools");
+  assert.equal(initialized.result.serverInfo.version, "0.5.0");
 
   child.stdin.write(
     `${JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized", params: {} })}\n`,
@@ -86,7 +86,7 @@ try {
   });
   const status = JSON.parse(statusResponse.result.content[0].text);
   assert.equal(status.success, true);
-  assert.equal(status.server, "ppt-visual-tools");
+  assert.equal(status.server, "slidetwin-tools");
   assert.equal(status.scripts["prepare_image_scene.py"], true);
 
   const invalidPathResponse = await request("tools/call", {
