@@ -2,7 +2,7 @@
 set -euo pipefail
 
 INSTALL_DIR="${1:-$HOME/.codex/marketplaces/ppt-visual-tools}"
-REPOSITORY="https://github.com/No86Husky/academic-tools.git"
+REPOSITORY="https://github.com/No86Husky/academic-tools-slidetwin.git"
 PLUGIN="ppt-visual-reconstructor@ppt-visual-tools"
 
 for command in git node python3 codex; do
