@@ -174,7 +174,7 @@ plugins/ppt-visual-reconstructor/  # retained internal compatibility ID
 Open PowerShell and copy only the command below. It downloads the public installer, installs missing prerequisites with `winget`, registers the marketplace, installs the plugin, and runs the PowerPoint bridge probe:
 
 ```powershell
-$p = Join-Path $env:TEMP "install-slidetwin.ps1"; Invoke-WebRequest "https://raw.githubusercontent.com/No86Husky/academic-tools/main/install.ps1" -OutFile $p; powershell.exe -NoProfile -ExecutionPolicy Bypass -File $p -InstallPrerequisites -RunPowerPointProbe
+$p = Join-Path $env:TEMP "install-slidetwin.ps1"; Invoke-WebRequest "https://raw.githubusercontent.com/No86Husky/academic-tools-slidetwin/main/install.ps1" -OutFile $p; powershell.exe -NoProfile -ExecutionPolicy Bypass -File $p -InstallPrerequisites -RunPowerPointProbe
 ```
 
 The prerequisite switch authorizes installation of Git, Node.js LTS, Python 3.12, Codex CLI, `numpy`, and `Pillow`. Omit `-InstallPrerequisites` when those commands already exist. You may download and inspect `install.ps1` before running it.
@@ -184,8 +184,8 @@ The prerequisite switch authorizes installation of Git, Node.js LTS, Python 3.12
 If Git and Codex CLI are already available:
 
 ```powershell
-git clone https://github.com/No86Husky/academic-tools.git "$HOME\academic-tools"
-codex plugin marketplace add "$HOME\academic-tools"
+git clone https://github.com/No86Husky/academic-tools-slidetwin.git "$HOME\academic-tools-slidetwin"
+codex plugin marketplace add "$HOME\academic-tools-slidetwin"
 codex plugin add ppt-visual-reconstructor@ppt-visual-tools
 ```
 
