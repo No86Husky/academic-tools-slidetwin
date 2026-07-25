@@ -16,7 +16,7 @@ plugins/ppt-visual-reconstructor/skills/ppt-visual-reconstructor/references/scen
 
 This compatibility pointer remains only so older test scripts and previously documented paths fail clearly instead of silently using a divergent schema.
 
-In particular, protected reference crops must use the canonical structure:
+The shared runtime requires `source.type` to equal `reference_crop`, with the crop bounds stored in `source.box_px`:
 
 ```json
 {
