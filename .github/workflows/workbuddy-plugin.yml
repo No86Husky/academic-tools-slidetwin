@@ -7,20 +7,28 @@ on:
     paths:
       - ".codebuddy-plugin/**"
       - "plugins/slidetwin-workbuddy/**"
+      - "plugins/ppt-visual-reconstructor/**"
       - "workbuddy-desktop/**"
       - "docs/workbuddy/**"
       - "install-workbuddy.ps1"
+      - "install-workbuddy-offline.ps1"
+      - "requirements.txt"
       - "tools/build_workbuddy_skill.py"
+      - "tools/build_workbuddy_offline_bundle.py"
       - "tools/validate_workbuddy_plugin.py"
       - ".github/workflows/workbuddy-plugin.yml"
   pull_request:
     paths:
       - ".codebuddy-plugin/**"
       - "plugins/slidetwin-workbuddy/**"
+      - "plugins/ppt-visual-reconstructor/**"
       - "workbuddy-desktop/**"
       - "docs/workbuddy/**"
       - "install-workbuddy.ps1"
+      - "install-workbuddy-offline.ps1"
+      - "requirements.txt"
       - "tools/build_workbuddy_skill.py"
+      - "tools/build_workbuddy_offline_bundle.py"
       - "tools/validate_workbuddy_plugin.py"
       - ".github/workflows/workbuddy-plugin.yml"
 
@@ -43,11 +51,19 @@ jobs:
         run: node --check plugins/slidetwin-workbuddy/scripts/launch-mcp.mjs
       - name: Build uploadable WorkBuddy desktop Skill
         run: python tools/build_workbuddy_skill.py
+      - name: Build offline WorkBuddy runtime bundle
+        run: python tools/build_workbuddy_offline_bundle.py
       - name: Upload WorkBuddy desktop Skill artifact
         uses: actions/upload-artifact@v4
         with:
           name: slidetwin-workbuddy-skill
           path: dist/slidetwin-workbuddy-skill.zip
+          if-no-files-found: error
+      - name: Upload WorkBuddy offline runtime artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: slidetwin-workbuddy-offline
+          path: dist/slidetwin-workbuddy-offline.zip
           if-no-files-found: error
 
   powershell-parser:
@@ -55,37 +71,40 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Parse WorkBuddy installer
+      - name: Parse WorkBuddy installers
         id: parse
         shell: powershell
         continue-on-error: true
         run: |
-          $path = Resolve-Path .\install-workbuddy.ps1
-          $tokens = $null
-          $errors = $null
-          [System.Management.Automation.Language.Parser]::ParseFile(
-            $path,
-            [ref]$tokens,
-            [ref]$errors
-          ) | Out-Null
+          $allErrors = @()
+          foreach ($relativePath in @('.\install-workbuddy.ps1', '.\install-workbuddy-offline.ps1')) {
+            $path = Resolve-Path $relativePath
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile(
+              $path,
+              [ref]$tokens,
+              [ref]$errors
+            ) | Out-Null
 
-          if ($errors.Count -gt 0) {
-            $report = foreach ($errorItem in $errors) {
-              [pscustomobject]@{
+            foreach ($errorItem in $errors) {
+              $allErrors += [pscustomobject]@{
+                file = $relativePath
                 message = $errorItem.Message
                 extent = $errorItem.Extent.Text
                 line = $errorItem.Extent.StartLineNumber
                 column = $errorItem.Extent.StartColumnNumber
-                end_line = $errorItem.Extent.EndLineNumber
-                end_column = $errorItem.Extent.EndColumnNumber
               }
             }
-            $report | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath .\powershell-parser-errors.json -Encoding UTF8
-            $report | Format-List | Out-Host
+          }
+
+          if ($allErrors.Count -gt 0) {
+            $allErrors | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath .\powershell-parser-errors.json -Encoding UTF8
+            $allErrors | Format-List | Out-Host
             exit 1
           }
 
-          Write-Host "PowerShell parser check passed."
+          Write-Host "PowerShell parser checks passed."
 
       - name: Upload parser diagnostics
         if: steps.parse.outcome == 'failure'
@@ -105,23 +124,25 @@ jobs:
       - name: Reject invalid elif keyword
         shell: powershell
         run: |
-          $content = Get-Content -LiteralPath .\install-workbuddy.ps1 -Raw
-          if ($content -match '(?m)^\s*elif\b') {
-            Write-Error 'PowerShell installer contains the invalid elif keyword; use elseif.'
-            exit 1
+          foreach ($path in @('.\install-workbuddy.ps1', '.\install-workbuddy-offline.ps1')) {
+            $content = Get-Content -LiteralPath $path -Raw
+            if ($content -match '(?m)^\s*elif\b') {
+              Write-Error "$path contains the invalid elif keyword; use elseif."
+              exit 1
+            }
           }
           Write-Host "No invalid elif keyword found."
 
-      - name: Verify robust prerequisite handling
+      - name: Verify online prerequisite handling
         shell: powershell
         run: |
           $content = Get-Content -LiteralPath .\install-workbuddy.ps1 -Raw
           if ($content -notmatch 'Resolve-Or-InstallTool') {
-            Write-Error 'PowerShell installer is missing robust prerequisite resolution.'
+            Write-Error 'Online installer is missing robust prerequisite resolution.'
             exit 1
           }
           if ($content -match 'throw\s+"winget could not install') {
-            Write-Error 'PowerShell installer must verify the executable after a nonzero winget result instead of failing immediately.'
+            Write-Error 'Online installer must verify the executable after a nonzero winget result.'
             exit 1
           }
-          Write-Host "Prerequisite handling checks passed."
+          Write-Host "Online prerequisite handling checks passed."
