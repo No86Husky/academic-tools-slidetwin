@@ -1,10 +1,10 @@
 ---
 name: reconstruct
-description: Recreate a reference PNG or JPEG slide as a high-fidelity editable PowerPoint presentation. Use when the user supplies a slide screenshot or reference image and wants editable text, shapes, connectors, and separately preserved complex imagery.
+description: Recreate a reference PNG or JPEG slide as a high-fidelity editable PowerPoint presentation using the same SlideTwin runtime, object policy, native PowerPoint renderer, comparison metrics, and correction loop as the Codex integration.
 user-invocable: true
 ---
 
-# SlideTwin Reconstruction
+# SlideTwin Reconstruction — WorkBuddy parity mode
 
 Recreate one reference slide image as an editable visual twin in PowerPoint.
 
@@ -12,57 +12,52 @@ User-provided reference path or additional instructions:
 
 $ARGUMENTS
 
-## Environment requirements
+## Non-negotiable policy
 
-- Windows 10 or Windows 11, 64-bit
-- Desktop Microsoft PowerPoint with COM automation available
-- Node.js
-- Python 3.10 or newer
-- Pillow and NumPy
-
-## Object policy
-
-Classify every visible element into one of these categories:
-
-1. Native PowerPoint text
-2. Native PowerPoint shape or connector
-3. Editable SVG object
-4. Protected raster picture
-
-Use native PowerPoint text for normal wording. Use native shapes for cards, rectangles, circles, lines, arrows, and other simple geometry. Preserve photographs, artistic lettering, detailed illustrations, and visually complex regions as separate cropped pictures.
-
-Never flatten the entire slide into one full-slide image.
+- Use native PowerPoint text for readable titles, body copy, labels, numbers, and captions.
+- Use native PowerPoint shapes and connectors for simple geometry.
+- Use one SVG object only for a genuinely vector-like icon that is not usefully represented by native primitives.
+- Preserve photographs, artistic lettering, detailed illustrations, textures, and visually complex regions as separate cropped pictures.
+- Never flatten the entire slide into one visible image or hide a full-slide raster inside an SVG.
+- Treat desktop PowerPoint's native PNG export as the rendering authority.
 
 ## Required workflow
 
-1. Resolve the reference PNG or JPEG to an absolute local path.
-2. Create a dedicated output directory under the current workspace.
-3. Call `ppt_environment_status`.
-4. If desktop PowerPoint has not been verified on this machine, call `ppt_probe_powerpoint` once.
-5. Inspect the reference image at full resolution and transcribe all readable text.
-6. Write a complete UTF-8 semantic scene-plan JSON that follows the bundled SlideTwin scene format.
-7. Call `ppt_prepare_image_scene` to validate the plan, crop protected image regions, and create the SVG preview.
-8. Correct the scene plan when validation reports a specific error.
-9. Call `ppt_build_editable_slide`.
-10. Call `ppt_compare_slide` using the native PowerPoint PNG render.
-11. Review the metrics, overlay, and difference heatmap.
-12. When meaningful correctable differences remain, inspect the PPTX, write an explicit JSON correction plan, and call `ppt_apply_correction_plan`.
-13. Compare again. Run no more than three correction passes unless the user explicitly requests additional passes.
-14. Stop when the quality target is reached or improvement plateaus.
-15. Return the final editable PPTX path, native render path, comparison report, editable coverage, and documented limitations.
+1. Resolve the reference image to an absolute local path and create a dedicated output directory.
+2. Call `ppt_environment_status`.
+3. Call `ppt_probe_powerpoint` before the first native build unless the same installation already has a successful probe.
+4. Inspect the reference at full resolution and transcribe every readable character exactly.
+5. Write a complete UTF-8 scene plan using the canonical SlideTwin schema used by the shared `ppt-visual-reconstructor` runtime. Protected crops must use `source.type = "reference_crop"` and `source.box_px`.
+6. Call `ppt_prepare_image_scene` and fix every explicit validation error.
+7. Do not use Grep, text search, or SVG XML inspection as a substitute for visual review. `semantic-preview.svg` is an interchange artifact, not the final fidelity authority.
+8. Call `ppt_build_editable_slide`, then visually inspect the native PowerPoint PNG render.
+9. Call `ppt_compare_slide` after every build or correction pass. Actually open and review the candidate render, aligned reference, overlay, and difference heatmap; do not rely on the JSON metrics alone.
+10. Call `ppt_inspect_powerpoint` before writing a correction plan. Check text, fonts, object bounds, clipping, overflow, wrapping, overlap, grouping, and z-order.
+11. Correct the largest localized differences first: global geometry, picture crop, text transcription and wrapping, typography, then decoration.
+12. Call `ppt_apply_correction_plan`, render again, and compare again.
+13. Stop only when the quality gate passes or two consecutive correction passes produce no meaningful improvement.
 
-## Quality policy
+## PASS requirements
 
-- Target at least 90% pixel similarity when reference quality and available fonts permit.
-- Treat the native desktop PowerPoint render as the rendering authority.
-- Report visual similarity and editable coverage separately.
-- Prefer editability over artificially improving the score by flattening content.
-- Do not claim that a threshold was reached unless the comparison report confirms it.
-- Document unreadable text, unavailable fonts, low-resolution source regions, or a measured quality plateau.
+A result is PASS only when all conditions hold:
 
-## Safety
+- text-content accuracy is 100%;
+- protected-picture integrity is 100%;
+- no visible garbling;
+- no unintended clipping or overflow;
+- `pixel_similarity >= 0.90`;
+- `composite_visual_score >= 0.90` when the same fonts and PowerPoint renderer are available;
+- visual similarity and editable coverage are reported separately;
+- at least 95% of detected text and simple geometry are native PowerPoint objects unless every exception is documented.
 
-- Never modify an original presentation in place.
-- Write every build and correction pass to a new output directory.
-- Keep protected pictures unchanged unless the user explicitly changes their protected status.
-- Do not execute unrelated commands.
+Never claim that 90% was reached unless `comparison.json` confirms it.
+
+## PLATEAU and FAIL
+
+- Return PLATEAU when the gate is unmet and two consecutive passes improve both pixel similarity and composite score by less than 0.003, or a documented font/asset/rendering limitation prevents further editable improvement.
+- Return FAIL when the runtime, PowerPoint probe, build, render, comparison, anti-flattening policy, protected imagery, or final PPTX integrity fails.
+- Only PASS may be described as meeting the SlideTwin acceptance threshold.
+
+## Deliverables
+
+Return the final editable PPTX, native PowerPoint render, resolved scene plan, semantic SVG, protected assets, comparison JSON, overlay, heatmap, PowerPoint inspection report, correction plans, editability report, limitations, and exactly one status: PASS, PLATEAU, or FAIL.
