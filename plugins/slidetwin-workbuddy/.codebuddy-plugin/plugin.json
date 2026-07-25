@@ -1,0 +1,20 @@
+{
+  "name": "slidetwin",
+  "version": "0.7.0-preview",
+  "description": "SlideTwin WorkBuddy integration with Codex-parity workflow, quality gates, native PowerPoint rendering, comparison, and correction.",
+  "author": {
+    "name": "No86Husky and contributors"
+  },
+  "homepage": "https://github.com/No86Husky/academic-tools-slidetwin",
+  "repository": "https://github.com/No86Husky/academic-tools-slidetwin",
+  "license": "MIT",
+  "keywords": [
+    "powerpoint",
+    "pptx",
+    "editable-slide",
+    "slidetwin",
+    "mcp",
+    "visual-comparison",
+    "quality-gate"
+  ]
+}

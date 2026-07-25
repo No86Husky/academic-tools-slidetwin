@@ -1,0 +1,165 @@
+name: WorkBuddy integration validation
+
+on:
+  push:
+    branches:
+      - feat/workbuddy-plugin
+    paths:
+      - ".codebuddy-plugin/**"
+      - "plugins/slidetwin-workbuddy/**"
+      - "plugins/ppt-visual-reconstructor/**"
+      - "workbuddy-desktop/**"
+      - "docs/workbuddy/**"
+      - "install-workbuddy.ps1"
+      - "install-workbuddy-offline.ps1"
+      - "requirements.txt"
+      - "tools/build_workbuddy_skill.py"
+      - "tools/build_workbuddy_offline_bundle.py"
+      - "tools/validate_workbuddy_plugin.py"
+      - ".github/workflows/workbuddy-plugin.yml"
+  pull_request:
+    paths:
+      - ".codebuddy-plugin/**"
+      - "plugins/slidetwin-workbuddy/**"
+      - "plugins/ppt-visual-reconstructor/**"
+      - "workbuddy-desktop/**"
+      - "docs/workbuddy/**"
+      - "install-workbuddy.ps1"
+      - "install-workbuddy-offline.ps1"
+      - "requirements.txt"
+      - "tools/build_workbuddy_skill.py"
+      - "tools/build_workbuddy_offline_bundle.py"
+      - "tools/validate_workbuddy_plugin.py"
+      - ".github/workflows/workbuddy-plugin.yml"
+
+jobs:
+  static-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Validate existing repository
+        run: python tools/validate_repository.py
+      - name: Validate WorkBuddy integrations
+        id: workbuddy_validation
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          python tools/validate_workbuddy_plugin.py 2>&1 | tee workbuddy-validation.log
+      - name: Upload WorkBuddy validation diagnostics
+        if: steps.workbuddy_validation.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: workbuddy-validation-diagnostics
+          path: workbuddy-validation.log
+          if-no-files-found: error
+      - name: Fail when WorkBuddy validation failed
+        if: steps.workbuddy_validation.outcome == 'failure'
+        run: |
+          echo "WorkBuddy validation failed. See workbuddy-validation-diagnostics."
+          exit 1
+      - name: Check MCP launcher syntax
+        run: node --check plugins/slidetwin-workbuddy/scripts/launch-mcp.mjs
+      - name: Build uploadable WorkBuddy desktop Skill
+        run: python tools/build_workbuddy_skill.py
+      - name: Build offline WorkBuddy runtime bundle
+        run: python tools/build_workbuddy_offline_bundle.py
+      - name: Upload WorkBuddy desktop Skill artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: slidetwin-workbuddy-skill
+          path: dist/slidetwin-workbuddy-skill.zip
+          if-no-files-found: error
+      - name: Upload WorkBuddy offline runtime artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: slidetwin-workbuddy-offline
+          path: dist/slidetwin-workbuddy-offline.zip
+          if-no-files-found: error
+
+  powershell-parser:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Parse WorkBuddy installers
+        id: parse
+        shell: powershell
+        continue-on-error: true
+        run: |
+          $allErrors = @()
+          foreach ($relativePath in @('.\install-workbuddy.ps1', '.\install-workbuddy-offline.ps1')) {
+            $path = Resolve-Path $relativePath
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile(
+              $path,
+              [ref]$tokens,
+              [ref]$errors
+            ) | Out-Null
+
+            foreach ($errorItem in $errors) {
+              $allErrors += [pscustomobject]@{
+                file = $relativePath
+                message = $errorItem.Message
+                extent = $errorItem.Extent.Text
+                line = $errorItem.Extent.StartLineNumber
+                column = $errorItem.Extent.StartColumnNumber
+              }
+            }
+          }
+
+          if ($allErrors.Count -gt 0) {
+            $allErrors | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath .\powershell-parser-errors.json -Encoding UTF8
+            $allErrors | Format-List | Out-Host
+            exit 1
+          }
+
+          Write-Host "PowerShell parser checks passed."
+
+      - name: Upload parser diagnostics
+        if: steps.parse.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: workbuddy-powershell-parser-diagnostics
+          path: powershell-parser-errors.json
+          if-no-files-found: error
+
+      - name: Fail when parser failed
+        if: steps.parse.outcome == 'failure'
+        shell: powershell
+        run: |
+          Write-Error 'PowerShell parser failed. See workbuddy-powershell-parser-diagnostics artifact.'
+          exit 1
+
+      - name: Reject invalid elif keyword
+        shell: powershell
+        run: |
+          foreach ($path in @('.\install-workbuddy.ps1', '.\install-workbuddy-offline.ps1')) {
+            $content = Get-Content -LiteralPath $path -Raw
+            if ($content -match '(?m)^\s*elif\b') {
+              Write-Error "$path contains the invalid elif keyword; use elseif."
+              exit 1
+            }
+          }
+          Write-Host "No invalid elif keyword found."
+
+      - name: Verify online prerequisite handling
+        shell: powershell
+        run: |
+          $content = Get-Content -LiteralPath .\install-workbuddy.ps1 -Raw
+          if ($content -notmatch 'Resolve-Or-InstallTool') {
+            Write-Error 'Online installer is missing robust prerequisite resolution.'
+            exit 1
+          }
+          if ($content -match 'throw\s+"winget could not install') {
+            Write-Error 'Online installer must verify the executable after a nonzero winget result.'
+            exit 1
+          }
+          Write-Host "Online prerequisite handling checks passed."
