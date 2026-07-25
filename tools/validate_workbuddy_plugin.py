@@ -74,7 +74,6 @@ def validate_mcp() -> None:
 
 def validate_text_assets() -> None:
     skill = require_file("plugins/slidetwin-workbuddy/skills/reconstruct/SKILL.md")
-    command = require_file("plugins/slidetwin-workbuddy/commands/reconstruct.md")
     launcher = require_file("plugins/slidetwin-workbuddy/scripts/launch-mcp.mjs")
     require_file("install-workbuddy.ps1")
     require_file("docs/workbuddy/INSTALLATION.md")
@@ -85,8 +84,8 @@ def validate_text_assets() -> None:
         fail("WorkBuddy skill must preserve the anti-flattening policy")
     if "ppt_environment_status" not in skill_text or "ppt_compare_slide" not in skill_text:
         fail("WorkBuddy skill must state the required MCP workflow")
-    if "$ARGUMENTS" not in command.read_text(encoding="utf-8"):
-        fail("WorkBuddy command must forward user arguments")
+    if "$ARGUMENTS" not in skill_text:
+        fail("WorkBuddy skill must forward user arguments")
     if "SLIDETWIN_RUNTIME_ROOT" not in launcher.read_text(encoding="utf-8"):
         fail("WorkBuddy launcher must support the shared runtime environment variable")
 
