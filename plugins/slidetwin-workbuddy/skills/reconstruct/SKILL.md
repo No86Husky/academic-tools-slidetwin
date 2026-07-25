@@ -1,11 +1,16 @@
 ---
 name: reconstruct
 description: Recreate a reference PNG or JPEG slide as a high-fidelity editable PowerPoint presentation. Use when the user supplies a slide screenshot or reference image and wants editable text, shapes, connectors, and separately preserved complex imagery.
+user-invocable: true
 ---
 
 # SlideTwin Reconstruction
 
 Recreate one reference slide image as an editable visual twin in PowerPoint.
+
+User-provided reference path or additional instructions:
+
+$ARGUMENTS
 
 ## Environment requirements
 
