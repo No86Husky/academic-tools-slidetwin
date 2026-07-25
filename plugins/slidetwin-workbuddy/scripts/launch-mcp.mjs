@@ -57,6 +57,7 @@ function genericDescription(value) {
     return value;
   }
   return value
+    .replaceAll("a Codex-authored", "an AI-agent-authored")
     .replaceAll("Codex-authored", "AI-agent-authored")
     .replaceAll("after Codex analyzes", "after the host AI agent analyzes")
     .replaceAll("Codex tools", "agent tools")
