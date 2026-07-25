@@ -3,7 +3,7 @@
     "slidetwin-tools": {
       "command": "node",
       "args": [
-        "${CODEBUDDY_PLUGIN_ROOT}/scripts/mcp-server.mjs"
+        "${CODEBUDDY_PLUGIN_ROOT}/scripts/launch-mcp.mjs"
       ],
       "cwd": "${CODEBUDDY_PLUGIN_ROOT}"
     }
