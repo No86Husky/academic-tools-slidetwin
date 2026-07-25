@@ -1,15 +1,15 @@
 param(
     [string]$InstallDir = "$HOME\.slidetwin\academic-tools-slidetwin",
     [string]$RepositoryRef = "feat/workbuddy-plugin",
-    [string]$MarketplaceName = "slidetwin-tools",
     [switch]$InstallPrerequisites,
     [switch]$RunPowerPointProbe,
-    [switch]$SkipPythonPackages
+    [switch]$SkipPythonPackages,
+    [switch]$SkipMcpConfig,
+    [switch]$DoNotOpenSkillPackage
 )
 
 $ErrorActionPreference = "Stop"
 $Repository = "https://github.com/No86Husky/academic-tools-slidetwin.git"
-$Plugin = "slidetwin@$MarketplaceName"
 
 try {
     [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
@@ -58,7 +58,7 @@ function Require-Or-Install {
         return $path
     }
     if (-not $InstallPrerequisites) {
-        throw "$Label is required but was not found. Run the installer again with -InstallPrerequisites."
+        throw "$Label is required but was not found. Run this installer again with -InstallPrerequisites."
     }
     if ($null -eq (Find-Command @("winget.exe", "winget"))) {
         throw "winget is required for automatic prerequisite installation. Install $Label manually, then rerun this script."
@@ -71,48 +71,78 @@ function Require-Or-Install {
     return $path
 }
 
-function Invoke-CodeBuddy {
-    param([string[]]$Arguments, [switch]$AllowFailure)
-    & $script:CodeBuddy @Arguments | Out-Host
-    $exitCode = $LASTEXITCODE
-    if (-not $AllowFailure -and $exitCode -ne 0) {
-        throw "CodeBuddy command failed: codebuddy $($Arguments -join ' ') (exit code $exitCode)"
+function Write-Utf8NoBom {
+    param([string]$PathValue, [string]$Content)
+    $parent = Split-Path -Parent $PathValue
+    [System.IO.Directory]::CreateDirectory($parent) | Out-Null
+    [System.IO.File]::WriteAllText(
+        $PathValue,
+        $Content,
+        (New-Object System.Text.UTF8Encoding($false))
+    )
+}
+
+function Configure-WorkBuddyMcp {
+    param(
+        [string]$ConfigPath,
+        [string]$NodePath,
+        [string]$LauncherPath,
+        [string]$RuntimeRoot
+    )
+
+    $config = $null
+    if (Test-Path -LiteralPath $ConfigPath) {
+        $backup = "$ConfigPath.backup-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+        Copy-Item -LiteralPath $ConfigPath -Destination $backup -Force
+        Write-Host "Backed up existing MCP configuration: $backup"
+        $text = Get-Content -LiteralPath $ConfigPath -Raw -Encoding UTF8
+        if (-not [string]::IsNullOrWhiteSpace($text)) {
+            try {
+                $config = $text | ConvertFrom-Json
+            }
+            catch {
+                throw "Existing WorkBuddy MCP configuration is not valid JSON: $ConfigPath"
+            }
+        }
     }
-    return $exitCode
+
+    if ($null -eq $config) {
+        $config = [pscustomobject]@{}
+    }
+    if (-not ($config.PSObject.Properties.Name -contains "mcpServers")) {
+        $config | Add-Member -NotePropertyName "mcpServers" -NotePropertyValue ([pscustomobject]@{})
+    }
+    if ($null -eq $config.mcpServers) {
+        $config.mcpServers = [pscustomobject]@{}
+    }
+
+    $server = [pscustomobject]@{
+        type = "stdio"
+        command = $NodePath
+        args = @($LauncherPath)
+        env = [pscustomobject]@{
+            SLIDETWIN_RUNTIME_ROOT = $RuntimeRoot
+        }
+        description = "SlideTwin local editable-PowerPoint reconstruction tools"
+    }
+
+    $config.mcpServers | Add-Member -NotePropertyName "slidetwin-tools" -NotePropertyValue $server -Force
+    Write-Utf8NoBom -PathValue $ConfigPath -Content ($config | ConvertTo-Json -Depth 20)
+    Write-Host "Configured WorkBuddy user-level MCP: $ConfigPath"
 }
 
 if ($env:OS -ne "Windows_NT") {
     throw "The editable PowerPoint workflow requires 64-bit Windows with desktop PowerPoint installed."
 }
 
-Write-Host "SlideTwin WorkBuddy installer"
+Write-Host "SlideTwin installer for WorkBuddy desktop"
 Write-Host "Repository ref: $RepositoryRef"
 Write-Host "Install directory: $InstallDir"
+Write-Host "This installer does not install CodeBuddy Code and does not change the Codex plugin."
 
 $git = Require-Or-Install -Names @("git.exe", "git") -WingetId "Git.Git" -Label "Git"
 $node = Require-Or-Install -Names @("node.exe", "node") -WingetId "OpenJS.NodeJS.LTS" -Label "Node.js LTS"
 $python = Require-Or-Install -Names @("py.exe", "py", "python.exe", "python") -WingetId "Python.Python.3.12" -Label "Python 3.12"
-
-$script:CodeBuddy = Find-Command @("codebuddy.cmd", "codebuddy.exe", "codebuddy")
-if ($null -eq $script:CodeBuddy) {
-    if (-not $InstallPrerequisites) {
-        throw "CodeBuddy Code is required but was not found. Install it or rerun with -InstallPrerequisites."
-    }
-    $npm = Find-Command @("npm.cmd", "npm.exe", "npm")
-    if ($null -eq $npm) {
-        throw "npm was not found after Node.js installation. Reopen PowerShell and rerun the installer."
-    }
-    Write-Host "Installing CodeBuddy Code..."
-    & $npm install --global @tencent-ai/codebuddy-code | Out-Host
-    if ($LASTEXITCODE -ne 0) {
-        throw "npm could not install CodeBuddy Code. Exit code: $LASTEXITCODE"
-    }
-    Refresh-ProcessPath
-    $script:CodeBuddy = Find-Command @("codebuddy.cmd", "codebuddy.exe", "codebuddy")
-    if ($null -eq $script:CodeBuddy) {
-        throw "CodeBuddy Code was installed but is not visible. Reopen PowerShell and rerun the installer."
-    }
-}
 
 $parent = Split-Path -Parent $InstallDir
 New-Item -ItemType Directory -Path $parent -Force | Out-Null
@@ -132,7 +162,7 @@ if (Test-Path -LiteralPath (Join-Path $InstallDir ".git")) {
         throw "Could not update the checkout. Resolve local changes in $InstallDir and rerun the installer."
     }
 }
-elseif (Test-Path -LiteralPath $InstallDir) {
+elif (Test-Path -LiteralPath $InstallDir) {
     throw "Install directory already exists but is not a Git checkout: $InstallDir"
 }
 else {
@@ -159,25 +189,39 @@ if (-not $SkipPythonPackages) {
 }
 
 $runtimeRoot = Join-Path $InstallDir "plugins\ppt-visual-reconstructor"
+$launcherPath = Join-Path $InstallDir "plugins\slidetwin-workbuddy\scripts\launch-mcp.mjs"
 if (-not (Test-Path -LiteralPath (Join-Path $runtimeRoot "scripts\mcp-server.mjs"))) {
     throw "The shared SlideTwin runtime is incomplete: $runtimeRoot"
 }
-[Environment]::SetEnvironmentVariable("SLIDETWIN_RUNTIME_ROOT", $runtimeRoot, "User")
-$env:SLIDETWIN_RUNTIME_ROOT = $runtimeRoot
-Write-Host "Shared runtime: $runtimeRoot"
-
-Write-Host "Registering the local WorkBuddy marketplace..."
-$marketplaceExit = Invoke-CodeBuddy -Arguments @("plugin", "marketplace", "add", $InstallDir, "--name", $MarketplaceName) -AllowFailure
-if ($marketplaceExit -ne 0) {
-    Write-Host "Marketplace may already exist; updating it instead..."
-    Invoke-CodeBuddy -Arguments @("plugin", "marketplace", "update", $MarketplaceName)
+if (-not (Test-Path -LiteralPath $launcherPath)) {
+    throw "The WorkBuddy MCP launcher is missing: $launcherPath"
 }
 
-Write-Host "Installing the WorkBuddy plugin..."
-$installExit = Invoke-CodeBuddy -Arguments @("plugin", "install", $Plugin, "--scope", "user") -AllowFailure
-if ($installExit -ne 0) {
-    Write-Host "Plugin may already be installed; updating it instead..."
-    Invoke-CodeBuddy -Arguments @("plugin", "update", $Plugin, "--scope", "user")
+[Environment]::SetEnvironmentVariable("SLIDETWIN_RUNTIME_ROOT", $runtimeRoot, "User")
+$env:SLIDETWIN_RUNTIME_ROOT = $runtimeRoot
+Write-Host "SlideTwin runtime: $runtimeRoot"
+
+if (-not $SkipMcpConfig) {
+    $mcpConfigPath = Join-Path $HOME ".workbuddy\mcp.json"
+    Configure-WorkBuddyMcp `
+        -ConfigPath $mcpConfigPath `
+        -NodePath $node `
+        -LauncherPath $launcherPath `
+        -RuntimeRoot $runtimeRoot
+}
+
+$skillOutput = Join-Path $InstallDir "dist\slidetwin-workbuddy-skill.zip"
+$skillBuilder = Join-Path $InstallDir "tools\build_workbuddy_skill.py"
+$pythonLeaf = [IO.Path]::GetFileNameWithoutExtension($python)
+Write-Host "Building the WorkBuddy Skill package..."
+if ($pythonLeaf -ieq "py") {
+    & $python -3 $skillBuilder --output $skillOutput | Out-Host
+}
+else {
+    & $python $skillBuilder --output $skillOutput | Out-Host
+}
+if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $skillOutput)) {
+    throw "Could not build the WorkBuddy Skill package."
 }
 
 if ($RunPowerPointProbe) {
@@ -186,15 +230,23 @@ if ($RunPowerPointProbe) {
     Write-Host "Running the desktop PowerPoint bridge probe..."
     & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $probe -OutputDirectory $probeOutput | Out-Host
     if ($LASTEXITCODE -ne 0) {
-        throw "The WorkBuddy plugin is installed, but the PowerPoint bridge probe failed. Review the output above."
+        throw "The SlideTwin runtime is configured, but the PowerPoint bridge probe failed. Review the output above."
     }
 }
 
 Write-Host ""
-Write-Host "Installation complete."
-Write-Host "Start CodeBuddy Code, run /reload-plugins, upload one slide image, and use:"
-Write-Host "/slidetwin:reconstruct"
+Write-Host "Runtime and MCP setup complete."
+Write-Host "Skill package: $skillOutput"
 Write-Host ""
-Write-Host "The WorkBuddy plugin uses the shared SlideTwin runtime at:"
-Write-Host $runtimeRoot
-Write-Host "The original Codex plugin has not been changed or reinstalled."
+Write-Host "In WorkBuddy: Skills -> Add Skill -> Upload Skill, then select the ZIP above."
+Write-Host "After upload, open Connectors/MCP and confirm slidetwin-tools is green."
+Write-Host "The original Codex plugin was not changed, installed, updated, or removed."
+
+if (-not $DoNotOpenSkillPackage) {
+    try {
+        Start-Process explorer.exe -ArgumentList "/select,`"$skillOutput`""
+    }
+    catch {
+        Write-Host "Could not open File Explorer automatically. Open the Skill package path manually."
+    }
+}
