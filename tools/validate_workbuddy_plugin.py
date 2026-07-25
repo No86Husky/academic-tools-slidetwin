@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the standalone WorkBuddy integration without importing third-party packages."""
+"""Validate the standalone WorkBuddy integrations without third-party packages."""
 
 from __future__ import annotations
 
@@ -7,11 +7,14 @@ import json
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
+import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins" / "slidetwin-workbuddy"
 MARKETPLACE = ROOT / ".codebuddy-plugin" / "marketplace.json"
+DESKTOP_SKILL = ROOT / "workbuddy-desktop" / "slidetwin"
 
 
 def fail(message: str) -> None:
@@ -75,19 +78,78 @@ def validate_mcp() -> None:
 def validate_text_assets() -> None:
     skill = require_file("plugins/slidetwin-workbuddy/skills/reconstruct/SKILL.md")
     launcher = require_file("plugins/slidetwin-workbuddy/scripts/launch-mcp.mjs")
-    require_file("install-workbuddy.ps1")
+    installer = require_file("install-workbuddy.ps1")
     require_file("docs/workbuddy/INSTALLATION.md")
     require_file("docs/workbuddy/TESTING.md")
+    require_file("tools/build_workbuddy_skill.py")
 
     skill_text = skill.read_text(encoding="utf-8")
     if "Never flatten the entire slide" not in skill_text:
-        fail("WorkBuddy skill must preserve the anti-flattening policy")
+        fail("WorkBuddy plugin Skill must preserve the anti-flattening policy")
     if "ppt_environment_status" not in skill_text or "ppt_compare_slide" not in skill_text:
-        fail("WorkBuddy skill must state the required MCP workflow")
+        fail("WorkBuddy plugin Skill must state the required MCP workflow")
     if "$ARGUMENTS" not in skill_text:
-        fail("WorkBuddy skill must forward user arguments")
+        fail("WorkBuddy plugin Skill must forward user arguments")
     if "SLIDETWIN_RUNTIME_ROOT" not in launcher.read_text(encoding="utf-8"):
         fail("WorkBuddy launcher must support the shared runtime environment variable")
+
+    installer_text = installer.read_text(encoding="utf-8")
+    if "@tencent-ai/codebuddy-code" in installer_text:
+        fail("WorkBuddy desktop installer must not install CodeBuddy Code")
+    if '".workbuddy\\mcp.json"' not in installer_text:
+        fail("WorkBuddy desktop installer must configure the user-level MCP file")
+    if "build_workbuddy_skill.py" not in installer_text:
+        fail("WorkBuddy desktop installer must build the uploadable Skill package")
+
+
+def validate_desktop_skill_package() -> None:
+    skill_md = DESKTOP_SKILL / "SKILL.md"
+    manifest = DESKTOP_SKILL / "manifest.yaml"
+    reference = DESKTOP_SKILL / "references" / "scene-plan-format.md"
+    for path in (skill_md, manifest, reference):
+        if not path.is_file():
+            fail(f"Missing WorkBuddy desktop Skill source: {path.relative_to(ROOT)}")
+
+    skill_text = skill_md.read_text(encoding="utf-8")
+    for required in (
+        "name: slidetwin",
+        "ppt_environment_status",
+        "ppt_build_editable_slide",
+        "ppt_compare_slide",
+        "不得为了提高相似度而把整页参考图作为一张全页背景图片",
+    ):
+        if required not in skill_text:
+            fail(f"WorkBuddy desktop Skill is missing required content: {required}")
+
+    manifest_text = manifest.read_text(encoding="utf-8")
+    for required in ("name: slidetwin", "version:", "description:", "category:", "author:"):
+        if required not in manifest_text:
+            fail(f"WorkBuddy desktop manifest is missing: {required}")
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        output = Path(temp_dir) / "slidetwin-workbuddy-skill.zip"
+        result = subprocess.run(
+            [sys.executable, str(ROOT / "tools" / "build_workbuddy_skill.py"), "--output", str(output)],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        if result.returncode != 0:
+            fail(f"Desktop Skill build failed:\n{result.stdout}\n{result.stderr}")
+        if not output.is_file():
+            fail("Desktop Skill build did not create a ZIP")
+        with zipfile.ZipFile(output, "r") as archive:
+            names = set(archive.namelist())
+            required_names = {
+                "slidetwin/SKILL.md",
+                "slidetwin/manifest.yaml",
+                "slidetwin/references/scene-plan-format.md",
+            }
+            if not required_names.issubset(names):
+                fail(f"Desktop Skill ZIP is missing entries: {sorted(required_names - names)}")
+            if archive.testzip() is not None:
+                fail("Desktop Skill ZIP integrity check failed")
 
 
 def validate_codex_is_separate() -> None:
@@ -121,13 +183,14 @@ def main() -> int:
         validate_manifest,
         validate_mcp,
         validate_text_assets,
+        validate_desktop_skill_package,
         validate_codex_is_separate,
         validate_javascript,
     ]
     for check in checks:
         check()
         print(f"PASS: {check.__name__}")
-    print("WorkBuddy plugin validation passed.")
+    print("WorkBuddy integration validation passed.")
     return 0
 
 
