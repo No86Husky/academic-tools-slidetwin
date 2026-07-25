@@ -1,0 +1,11 @@
+{
+  "name": "slidetwin-tools",
+  "plugins": [
+    {
+      "name": "slidetwin",
+      "source": "./plugins/slidetwin-workbuddy",
+      "description": "Recreate reference slide images as high-fidelity editable PowerPoint files.",
+      "version": "0.6.0-preview"
+    }
+  ]
+}
