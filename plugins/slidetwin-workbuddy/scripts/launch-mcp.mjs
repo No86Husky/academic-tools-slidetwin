@@ -4,6 +4,7 @@ import { spawn } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import readline from "node:readline";
 import { fileURLToPath } from "node:url";
 
 const launcherDirectory = path.dirname(fileURLToPath(import.meta.url));
@@ -51,6 +52,30 @@ function runtimeCandidates() {
     .filter(Boolean);
 }
 
+function genericDescription(value) {
+  if (typeof value !== "string") {
+    return value;
+  }
+  return value
+    .replaceAll("Codex-authored", "AI-agent-authored")
+    .replaceAll("after Codex analyzes", "after the host AI agent analyzes")
+    .replaceAll("Codex tools", "agent tools")
+    .replaceAll("Codex", "the host AI agent");
+}
+
+function adaptResponse(message) {
+  if (message?.result?.serverInfo?.name === "slidetwin-tools") {
+    message.result.serverInfo.name = "slidetwin-workbuddy-tools";
+  }
+  if (Array.isArray(message?.result?.tools)) {
+    message.result.tools = message.result.tools.map((tool) => ({
+      ...tool,
+      description: genericDescription(tool.description),
+    }));
+  }
+  return message;
+}
+
 const runtimeRoot = runtimeCandidates().find(isUsableRuntime);
 if (!runtimeRoot) {
   const checked = runtimeCandidates().map((item) => `  - ${item}`).join("\n");
@@ -74,8 +99,21 @@ const child = spawn(process.execPath, [serverPath], {
     ...process.env,
     SLIDETWIN_RUNTIME_ROOT: runtimeRoot,
   },
-  stdio: ["inherit", "inherit", "inherit"],
+  stdio: ["pipe", "pipe", "pipe"],
   windowsHide: true,
+});
+
+process.stdin.pipe(child.stdin);
+child.stderr.pipe(process.stderr);
+
+const childOutput = readline.createInterface({ input: child.stdout, crlfDelay: Infinity });
+childOutput.on("line", (line) => {
+  try {
+    const message = adaptResponse(JSON.parse(line));
+    process.stdout.write(`${JSON.stringify(message)}\n`);
+  } catch {
+    process.stdout.write(`${line}\n`);
+  }
 });
 
 child.on("error", (error) => {
