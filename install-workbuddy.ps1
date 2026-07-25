@@ -77,7 +77,7 @@ function Resolve-Or-InstallTool {
         $path = Find-KnownPath -Candidates $KnownPaths
     }
     if ($null -ne $path) {
-        Write-Host "Found $Label: $path"
+        Write-Host "Found ${Label}: $path"
         return $path
     }
 
