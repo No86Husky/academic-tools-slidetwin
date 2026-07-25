@@ -54,13 +54,14 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Parse WorkBuddy installer
+      - name: Parse and lint WorkBuddy installer
         shell: powershell
         run: |
+          $path = Resolve-Path .\install-workbuddy.ps1
           $tokens = $null
           $errors = $null
           [System.Management.Automation.Language.Parser]::ParseFile(
-            (Resolve-Path .\install-workbuddy.ps1),
+            $path,
             [ref]$tokens,
             [ref]$errors
           ) | Out-Null
@@ -68,4 +69,19 @@ jobs:
             $errors | ForEach-Object { Write-Error $_.Message }
             exit 1
           }
-          Write-Host "PowerShell syntax check passed."
+
+          $content = Get-Content -LiteralPath $path -Raw
+          if ($content -match '(?m)^\s*elif\b') {
+            Write-Error 'PowerShell installer contains the invalid elif keyword; use elseif.'
+            exit 1
+          }
+          if ($content -notmatch 'Resolve-Or-InstallTool') {
+            Write-Error 'PowerShell installer is missing robust prerequisite resolution.'
+            exit 1
+          }
+          if ($content -match 'throw\s+"winget could not install') {
+            Write-Error 'PowerShell installer must verify the executable after a nonzero winget result instead of failing immediately.'
+            exit 1
+          }
+
+          Write-Host "PowerShell syntax and semantic checks passed."
