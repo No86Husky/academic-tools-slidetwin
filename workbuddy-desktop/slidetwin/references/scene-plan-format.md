@@ -1,133 +1,32 @@
-# SlideTwin scene plan format
+# Deprecated compatibility pointer
 
-The host model writes a UTF-8 JSON file that describes one reference slide in pixel coordinates.
+Do not use this file as a scene-plan specification.
 
-## Minimal document
+The WorkBuddy Skill ZIP is built with the canonical Codex SlideTwin scene specification at:
 
-```json
-{
-  "schema_version": "1.0",
-  "slide": {
-    "width_px": 1600,
-    "height_px": 900,
-    "width_pt": 960,
-    "height_pt": 540,
-    "background": "#FFFFFF"
-  },
-  "elements": []
-}
+```text
+references/scene-format.md
 ```
 
-## Common element fields
+The canonical file is copied directly from:
 
-Every element should contain:
-
-```json
-{
-  "id": "unique-id",
-  "name": "human-readable-name",
-  "kind": "text",
-  "classification": "native_text",
-  "z": 10,
-  "bounds_px": [100, 80, 600, 90],
-  "rotation": 0
-}
+```text
+plugins/ppt-visual-reconstructor/skills/ppt-visual-reconstructor/references/scene-format.md
 ```
 
-`bounds_px` uses `[left, top, width, height]` in reference-image pixels.
+This compatibility pointer remains only so older test scripts and previously documented paths fail clearly instead of silently using a divergent schema.
 
-## Text element
-
-```json
-{
-  "id": "title",
-  "name": "Main title",
-  "kind": "text",
-  "classification": "native_text",
-  "z": 20,
-  "bounds_px": [120, 70, 900, 90],
-  "text": "Example title",
-  "font": {
-    "family": "Microsoft YaHei",
-    "size_pt": 30,
-    "bold": true,
-    "italic": false,
-    "color": "#17365D",
-    "spacing_pt": 0
-  },
-  "paragraph": {
-    "align": "left",
-    "vertical_align": "middle",
-    "word_wrap": true,
-    "margin_left_pt": 0,
-    "margin_right_pt": 0,
-    "margin_top_pt": 0,
-    "margin_bottom_pt": 0
-  }
-}
-```
-
-## Shape element
+In particular, protected reference crops must use the canonical structure:
 
 ```json
 {
-  "id": "card-1",
-  "name": "Card 1",
-  "kind": "shape",
-  "classification": "native_shape",
-  "shape_type": "rounded_rectangle",
-  "z": 5,
-  "bounds_px": [100, 220, 420, 250],
-  "fill": {"color": "#F4F7FB", "opacity": 1},
-  "stroke": {"color": "#9EB6CE", "width_pt": 1, "opacity": 1},
-  "shadow": null
-}
-```
-
-Supported simple shape types include `rectangle`, `rounded_rectangle`, `ellipse`, `triangle`, `diamond`, and `chevron`.
-
-## Line element
-
-```json
-{
-  "id": "arrow-1",
-  "name": "Arrow 1",
-  "kind": "line",
-  "classification": "native_shape",
-  "z": 8,
-  "points_px": [520, 340, 700, 340],
-  "stroke": {
-    "color": "#4F81BD",
-    "width_pt": 2,
-    "opacity": 1,
-    "dash_style": "solid",
-    "end_arrow": true
-  }
-}
-```
-
-## Protected image element
-
-```json
-{
-  "id": "illustration-1",
-  "name": "Protected illustration",
   "kind": "image",
   "classification": "raster_picture",
-  "z": 15,
-  "bounds_px": [1050, 160, 420, 520],
   "source": {
-    "crop_from_reference": [1050, 160, 420, 520]
+    "type": "reference_crop",
+    "box_px": [1050, 160, 420, 520]
   }
 }
 ```
 
-Use protected images only for photographs, artistic lettering, complex illustrations, textures, or detail-rich regions. Do not crop the whole slide as one protected image.
-
-## General rules
-
-- Use unique IDs.
-- Preserve reading order and visual layering through `z`.
-- Use `#RRGGBB` colors.
-- Keep all coordinates within the reference canvas.
-- Mark guide-only objects with `guide_only: true` and objects excluded from the final slide with `exclude_from_final: true`.
+Do not use the obsolete `source.crop_from_reference` form.
