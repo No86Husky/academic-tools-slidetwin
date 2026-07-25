@@ -1,0 +1,18 @@
+{
+  "name": "slidetwin",
+  "version": "0.6.0-preview",
+  "description": "SlideTwin integration for WorkBuddy: convert reference slide images into editable PowerPoint presentations.",
+  "author": {
+    "name": "No86Husky and contributors"
+  },
+  "homepage": "https://github.com/No86Husky/academic-tools-slidetwin",
+  "repository": "https://github.com/No86Husky/academic-tools-slidetwin",
+  "license": "MIT",
+  "keywords": [
+    "powerpoint",
+    "pptx",
+    "editable-slide",
+    "slidetwin",
+    "mcp"
+  ]
+}
