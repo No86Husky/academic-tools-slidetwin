@@ -57,11 +57,29 @@ function genericDescription(value) {
     return value;
   }
   return value
-    .replaceAll("a Codex-authored", "an AI-agent-authored")
-    .replaceAll("Codex-authored", "AI-agent-authored")
+    .replaceAll("a Codex-authored", "a host-agent-authored")
+    .replaceAll("Codex-authored", "host-agent-authored")
     .replaceAll("after Codex analyzes", "after the host AI agent analyzes")
     .replaceAll("Codex tools", "agent tools")
     .replaceAll("Codex", "the host AI agent");
+}
+
+function parityDescription(tool) {
+  const base = genericDescription(tool.description);
+  const notes = {
+    ppt_prepare_image_scene:
+      "WorkBuddy parity rule: treat the SVG as a structural interchange artifact. Never use Grep, text search, or SVG XML reading as a substitute for visual inspection. If the SVG viewer cannot display it, continue to the native PowerPoint build and inspect the PNG render.",
+    ppt_build_editable_slide:
+      "WorkBuddy parity rule: after this call, open and visually inspect the native PowerPoint PNG before judging fidelity.",
+    ppt_compare_slide:
+      "WorkBuddy parity rule: after every build and correction, open the candidate render, aligned reference, overlay, and difference heatmap. Do not rely on metric JSON alone and do not claim 90% unless comparison.json confirms it.",
+    ppt_inspect_powerpoint:
+      "WorkBuddy parity rule: call this before every correction plan and check fonts, text, clipping, overflow, wrapping, overlap, grouping, bounds, and z-order.",
+    ppt_apply_correction_plan:
+      "WorkBuddy parity rule: compare the new native render again immediately. Stop only at PASS or after two consecutive non-improving passes documented as PLATEAU.",
+  };
+  const note = notes[tool.name];
+  return note ? `${base} ${note}` : base;
 }
 
 function adaptResponse(message) {
@@ -71,7 +89,7 @@ function adaptResponse(message) {
   if (Array.isArray(message?.result?.tools)) {
     message.result.tools = message.result.tools.map((tool) => ({
       ...tool,
-      description: genericDescription(tool.description),
+      description: parityDescription(tool),
     }));
   }
   return message;
