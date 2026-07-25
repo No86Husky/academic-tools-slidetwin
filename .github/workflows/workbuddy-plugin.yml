@@ -1,4 +1,4 @@
-name: WorkBuddy plugin validation
+name: WorkBuddy integration validation
 
 on:
   push:
@@ -7,16 +7,20 @@ on:
     paths:
       - ".codebuddy-plugin/**"
       - "plugins/slidetwin-workbuddy/**"
+      - "workbuddy-desktop/**"
       - "docs/workbuddy/**"
       - "install-workbuddy.ps1"
+      - "tools/build_workbuddy_skill.py"
       - "tools/validate_workbuddy_plugin.py"
       - ".github/workflows/workbuddy-plugin.yml"
   pull_request:
     paths:
       - ".codebuddy-plugin/**"
       - "plugins/slidetwin-workbuddy/**"
+      - "workbuddy-desktop/**"
       - "docs/workbuddy/**"
       - "install-workbuddy.ps1"
+      - "tools/build_workbuddy_skill.py"
       - "tools/validate_workbuddy_plugin.py"
       - ".github/workflows/workbuddy-plugin.yml"
 
@@ -33,10 +37,18 @@ jobs:
           node-version: "20"
       - name: Validate existing repository
         run: python tools/validate_repository.py
-      - name: Validate WorkBuddy plugin
+      - name: Validate WorkBuddy integrations
         run: python tools/validate_workbuddy_plugin.py
       - name: Check MCP launcher syntax
         run: node --check plugins/slidetwin-workbuddy/scripts/launch-mcp.mjs
+      - name: Build uploadable WorkBuddy desktop Skill
+        run: python tools/build_workbuddy_skill.py
+      - name: Upload WorkBuddy desktop Skill artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: slidetwin-workbuddy-skill
+          path: dist/slidetwin-workbuddy-skill.zip
+          if-no-files-found: error
 
   powershell-parser:
     runs-on: windows-latest
