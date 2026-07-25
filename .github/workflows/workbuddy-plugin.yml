@@ -69,10 +69,9 @@ jobs:
             [ref]$errors
           ) | Out-Null
 
-          $report = @()
           if ($errors.Count -gt 0) {
-            foreach ($errorItem in $errors) {
-              $report += [pscustomobject]@{
+            $report = foreach ($errorItem in $errors) {
+              [pscustomobject]@{
                 message = $errorItem.Message
                 extent = $errorItem.Extent.Text
                 line = $errorItem.Extent.StartLineNumber
@@ -81,16 +80,15 @@ jobs:
                 end_column = $errorItem.Extent.EndColumnNumber
               }
             }
-          }
-          $report | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath .\powershell-parser-errors.json -Encoding UTF8
-          if ($errors.Count -gt 0) {
+            $report | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath .\powershell-parser-errors.json -Encoding UTF8
             $report | Format-List | Out-Host
             exit 1
           }
+
           Write-Host "PowerShell parser check passed."
 
       - name: Upload parser diagnostics
-        if: always()
+        if: steps.parse.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: workbuddy-powershell-parser-diagnostics
