@@ -1,5 +1,5 @@
 name: slidetwin
-version: 0.6.0-preview.2
-description: "将单页PPT参考图片高保真重建为可编辑PowerPoint"
+version: 0.7.0-preview.1
+description: "将单页PPT参考图片按Codex同等质量门槛重建为可编辑PowerPoint"
 category: productivity
 author: No86Husky and contributors
