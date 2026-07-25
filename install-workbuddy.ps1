@@ -132,7 +132,7 @@ if (Test-Path -LiteralPath (Join-Path $InstallDir ".git")) {
         throw "Could not update the checkout. Resolve local changes in $InstallDir and rerun the installer."
     }
 }
-elif (Test-Path -LiteralPath $InstallDir) {
+elseif (Test-Path -LiteralPath $InstallDir) {
     throw "Install directory already exists but is not a Git checkout: $InstallDir"
 }
 else {
