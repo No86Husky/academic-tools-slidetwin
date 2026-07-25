@@ -54,7 +54,8 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Parse and lint WorkBuddy installer
+
+      - name: Parse WorkBuddy installer
         shell: powershell
         run: |
           $path = Resolve-Path .\install-workbuddy.ps1
@@ -66,15 +67,30 @@ jobs:
             [ref]$errors
           ) | Out-Null
           if ($errors.Count -gt 0) {
-            $errors | ForEach-Object { Write-Error $_.Message }
+            $errors | ForEach-Object {
+              Write-Host ("PARSER ERROR: " + $_.Message)
+              Write-Host ("EXTENT: " + $_.Extent.Text)
+              Write-Host ("LINE: " + $_.Extent.StartLineNumber)
+              Write-Host ("COLUMN: " + $_.Extent.StartColumnNumber)
+            }
             exit 1
           }
+          Write-Host "PowerShell parser check passed."
 
-          $content = Get-Content -LiteralPath $path -Raw
+      - name: Reject invalid elif keyword
+        shell: powershell
+        run: |
+          $content = Get-Content -LiteralPath .\install-workbuddy.ps1 -Raw
           if ($content -match '(?m)^\s*elif\b') {
             Write-Error 'PowerShell installer contains the invalid elif keyword; use elseif.'
             exit 1
           }
+          Write-Host "No invalid elif keyword found."
+
+      - name: Verify robust prerequisite handling
+        shell: powershell
+        run: |
+          $content = Get-Content -LiteralPath .\install-workbuddy.ps1 -Raw
           if ($content -notmatch 'Resolve-Or-InstallTool') {
             Write-Error 'PowerShell installer is missing robust prerequisite resolution.'
             exit 1
@@ -83,5 +99,4 @@ jobs:
             Write-Error 'PowerShell installer must verify the executable after a nonzero winget result instead of failing immediately.'
             exit 1
           }
-
-          Write-Host "PowerShell syntax and semantic checks passed."
+          Write-Host "Prerequisite handling checks passed."
