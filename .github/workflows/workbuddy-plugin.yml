@@ -1,0 +1,59 @@
+name: WorkBuddy plugin validation
+
+on:
+  push:
+    branches:
+      - feat/workbuddy-plugin
+    paths:
+      - ".codebuddy-plugin/**"
+      - "plugins/slidetwin-workbuddy/**"
+      - "docs/workbuddy/**"
+      - "install-workbuddy.ps1"
+      - "tools/validate_workbuddy_plugin.py"
+      - ".github/workflows/workbuddy-plugin.yml"
+  pull_request:
+    paths:
+      - ".codebuddy-plugin/**"
+      - "plugins/slidetwin-workbuddy/**"
+      - "docs/workbuddy/**"
+      - "install-workbuddy.ps1"
+      - "tools/validate_workbuddy_plugin.py"
+      - ".github/workflows/workbuddy-plugin.yml"
+
+jobs:
+  static-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Validate existing repository
+        run: python tools/validate_repository.py
+      - name: Validate WorkBuddy plugin
+        run: python tools/validate_workbuddy_plugin.py
+      - name: Check MCP launcher syntax
+        run: node --check plugins/slidetwin-workbuddy/scripts/launch-mcp.mjs
+
+  powershell-parser:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse WorkBuddy installer
+        shell: powershell
+        run: |
+          $tokens = $null
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path .\install-workbuddy.ps1),
+            [ref]$tokens,
+            [ref]$errors
+          ) | Out-Null
+          if ($errors.Count -gt 0) {
+            $errors | ForEach-Object { Write-Error $_.Message }
+            exit 1
+          }
+          Write-Host "PowerShell syntax check passed."
