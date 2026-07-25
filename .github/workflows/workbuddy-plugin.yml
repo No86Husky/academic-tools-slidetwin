@@ -46,7 +46,24 @@ jobs:
       - name: Validate existing repository
         run: python tools/validate_repository.py
       - name: Validate WorkBuddy integrations
-        run: python tools/validate_workbuddy_plugin.py
+        id: workbuddy_validation
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          python tools/validate_workbuddy_plugin.py 2>&1 | tee workbuddy-validation.log
+      - name: Upload WorkBuddy validation diagnostics
+        if: steps.workbuddy_validation.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: workbuddy-validation-diagnostics
+          path: workbuddy-validation.log
+          if-no-files-found: error
+      - name: Fail when WorkBuddy validation failed
+        if: steps.workbuddy_validation.outcome == 'failure'
+        run: |
+          echo "WorkBuddy validation failed. See workbuddy-validation-diagnostics."
+          exit 1
       - name: Check MCP launcher syntax
         run: node --check plugins/slidetwin-workbuddy/scripts/launch-mcp.mjs
       - name: Build uploadable WorkBuddy desktop Skill
