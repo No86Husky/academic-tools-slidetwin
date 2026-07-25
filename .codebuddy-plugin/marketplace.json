@@ -1,10 +1,13 @@
 {
   "name": "slidetwin-tools",
+  "owner": {
+    "name": "No86Husky and contributors"
+  },
   "plugins": [
     {
       "name": "slidetwin",
       "source": "./plugins/slidetwin-workbuddy",
-      "description": "Recreate reference slide images as high-fidelity editable PowerPoint files.",
+      "description": "Recreate reference slide images as high-fidelity editable PowerPoint files with local desktop PowerPoint.",
       "version": "0.6.0-preview"
     }
   ]
